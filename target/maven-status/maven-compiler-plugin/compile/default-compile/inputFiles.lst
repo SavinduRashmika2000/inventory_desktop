@@ -1,0 +1,9 @@
+D:\pp\inventory_desktop\src\main\java\com\sync\service\OfflineQueueManager.java
+D:\pp\inventory_desktop\src\main\java\com\sync\service\DatabaseService.java
+D:\pp\inventory_desktop\src\main\java\com\sync\AppLauncher.java
+D:\pp\inventory_desktop\src\main\java\com\sync\dto\SyncResponse.java
+D:\pp\inventory_desktop\src\main\java\com\sync\dto\SyncStatusResponse.java
+D:\pp\inventory_desktop\src\main\java\com\sync\client\SyncApiClient.java
+D:\pp\inventory_desktop\src\main\java\com\sync\ui\MainController.java
+D:\pp\inventory_desktop\src\main\java\com\sync\service\SyncStateStore.java
+D:\pp\inventory_desktop\src\main\java\com\sync\scheduler\SyncScheduler.java

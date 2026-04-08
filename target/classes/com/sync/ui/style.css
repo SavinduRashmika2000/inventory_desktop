@@ -1,0 +1,141 @@
+/* Premium Glassmorphism Design System */
+
+.main-container {
+    -fx-background-color: linear-gradient(to bottom right, #0f172a, #1e293b);
+    -fx-font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Glass Card Effect */
+.glass-pane {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-background-radius: 16;
+    -fx-border-color: rgba(255, 255, 255, 0.1);
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.3), 20, 0, 0, 10);
+}
+
+.header-box {
+    -fx-padding: 0 0 20 0;
+}
+
+.header-box .label {
+    -fx-text-fill: white;
+    -fx-font-size: 28px;
+    -fx-font-weight: 900;
+    -fx-effect: dropshadow(three-pass-box, rgba(255, 255, 255, 0.1), 10, 0, 0, 0);
+}
+
+#statusLabel {
+    -fx-background-color: rgba(6, 182, 212, 0.1);
+    -fx-text-fill: #06b6d4;
+    -fx-padding: 5 15;
+    -fx-background-radius: 20;
+    -fx-border-color: rgba(6, 182, 212, 0.3);
+    -fx-border-radius: 20;
+}
+
+/* Premium Buttons with Gradients & Glow */
+.button {
+    -fx-background-radius: 12;
+    -fx-padding: 12 30;
+    -fx-text-fill: white;
+    -fx-font-weight: 800;
+    -fx-cursor: hand;
+    -fx-transition: all 0.3s ease;
+}
+
+.btn-primary {
+    -fx-background-color: linear-gradient(to right, #3b82f6, #8b5cf6);
+    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.4), 15, 0, 0, 0);
+}
+.btn-primary:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.7), 20, 0, 0, 0);
+    -fx-translate-y: -2px;
+}
+
+.btn-danger {
+    -fx-background-color: linear-gradient(to right, #ef4444, #f43f5e);
+    -fx-effect: dropshadow(three-pass-box, rgba(239, 68, 68, 0.4), 15, 0, 0, 0);
+}
+.btn-danger:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(239, 68, 68, 0.7), 20, 0, 0, 0);
+    -fx-translate-y: -2px;
+}
+
+.btn-accent {
+    -fx-background-color: linear-gradient(to right, #ec4899, #8b5cf6);
+    -fx-effect: dropshadow(three-pass-box, rgba(236, 72, 153, 0.4), 15, 0, 0, 0);
+}
+
+/* Modern Data Table */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-background-radius: 16;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: rgba(255, 255, 255, 0.03);
+    -fx-background-radius: 16 16 0 0;
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-size: 50;
+    -fx-padding: 10;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #94a3b8;
+    -fx-font-weight: 700;
+    -fx-font-size: 12px;
+    -fx-text-transform: uppercase;
+}
+
+.table-row-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e2e8f0;
+    -fx-cell-size: 50;
+    -fx-border-color: rgba(255, 255, 255, 0.05);
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: rgba(255, 255, 255, 0.01);
+}
+
+.table-row-cell:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+}
+
+.table-row-cell:selected {
+    -fx-background-color: rgba(59, 130, 246, 0.2);
+}
+
+/* Log Area - Terminal Style */
+.log-area {
+    -fx-control-inner-background: rgba(15, 23, 42, 0.8);
+    -fx-text-fill: #94a3b8;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: rgba(255, 255, 255, 0.1);
+    -fx-padding: 15;
+    -fx-font-family: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+.log-area .content {
+    -fx-background-color: transparent;
+}
+
+/* Smooth Scrollbars */
+.scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8;
+}
+.scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-background-radius: 10;
+}
+.scroll-bar:vertical .thumb:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.4);
+}
