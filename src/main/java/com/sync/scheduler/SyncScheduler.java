@@ -76,6 +76,15 @@ public class SyncScheduler {
             log("Sync cycle already in progress, skipping...");
             return;
         }
+
+        // Try to recover online status if we were offline
+        if (!apiClient.isOnline()) {
+            apiClient.checkConnection();
+        }
+
+        if (!apiClient.isOnline()) {
+            return;
+        }
         
         isSyncing = true;
         try {
@@ -105,7 +114,7 @@ public class SyncScheduler {
 
             try {
                 OfflineQueueManager.QueueItem item = queueManager.loadQueueItem(file);
-                log("Retrying queued batch for table: " + item.getTable() (Attempt " + (item.getRetryCount() + 1) + ")");
+                log("Retrying queued batch for table: " + item.getTable() + " (Attempt " + (item.getRetryCount() + 1) + ")");
                 
                 apiClient.syncTable(item.getTable(), item.getData());
                 queueManager.deleteQueue(file);
@@ -134,6 +143,7 @@ public class SyncScheduler {
 
     private void syncTable(String tableName) {
         try {
+            System.out.println("--- Processing Table: " + tableName + " ---");
             String initialLastSync = stateStore.getLastSyncTime(tableName);
             int batchSize = 500;
             int offset = 0;
@@ -143,6 +153,7 @@ public class SyncScheduler {
             
             while (true) {
                 List<Map<String, Object>> batch = dbService.getTableDataBatch(tableName, initialLastSync, batchSize, offset);
+                System.out.println("    Batch Size: " + batch.size() + " at offset: " + offset);
                 if (batch.isEmpty()) {
                     if (totalProcessed == 0) {
                         notifyProgress(tableName, 0, 0, "Up to Date");

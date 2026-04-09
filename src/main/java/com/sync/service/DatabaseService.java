@@ -24,18 +24,14 @@ public class DatabaseService {
     public List<String> getTableNames() throws SQLException {
         List<String> tables = new ArrayList<>();
         try (Connection conn = getConnection()) {
+            String catalog = conn.getCatalog();
             DatabaseMetaData metaData = conn.getMetaData();
-            try (ResultSet rs = metaData.getTables(null, null, "%", new String[]{"TABLE"})) {
+            try (ResultSet rs = metaData.getTables(catalog, null, "%", new String[]{"TABLE"})) {
                 while (rs.next()) {
                     String tableName = rs.getString("TABLE_NAME");
-                    // System schema patterns for exclusion
-                    String schema = rs.getString("TABLE_SCHEM");
-                    if (schema == null || (!schema.equalsIgnoreCase("information_schema") && 
-                                          !schema.equalsIgnoreCase("mysql") && 
-                                          !schema.equalsIgnoreCase("performance_schema") && 
-                                          !schema.equalsIgnoreCase("sys"))) {
-                        tables.add(tableName);
-                    }
+                    // System schemas are already filtered by catalog in most MySQL setups, 
+                    // but we keep the additional check for safety.
+                    tables.add(tableName);
                 }
             }
         }

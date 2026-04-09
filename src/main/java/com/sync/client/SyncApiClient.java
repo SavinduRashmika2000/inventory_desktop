@@ -7,6 +7,7 @@ import com.sync.dto.SyncResponse;
 import com.sync.dto.SyncStatusResponse;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -38,6 +39,22 @@ public class SyncApiClient {
         return isOnline;
     }
 
+    public boolean checkConnection() {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(baseUrl + "/api/sync/status/heartbeat")) // Generic non-existent table is fine for a 404/200 check
+                    .GET()
+                    .timeout(Duration.ofSeconds(5))
+                    .build();
+            HttpResponse<Void> response = httpClient.send(request, HttpResponse.BodyHandlers.discarding());
+            isOnline = (response.statusCode() < 500); // 200, 404, etc mean we reached the server
+            return isOnline;
+        } catch (Exception e) {
+            isOnline = false;
+            return false;
+        }
+    }
+
     public SyncResponse syncTable(String tableName, List<Map<String, Object>> records) throws Exception {
         String url = baseUrl + "/api/sync/" + tableName;
         String json = objectMapper.writeValueAsString(records);
@@ -61,7 +78,7 @@ public class SyncApiClient {
             } else {
                 throw new IOException("Sync failed with status code: " + response.statusCode());
             }
-        } catch (java.net.ConnectException | java.net.http.HttpConnectTimeoutException | java.net.http.HttpTimeoutException e) {
+        } catch (java.net.ConnectException | java.net.http.HttpTimeoutException e) {
             isOnline = false; // Trigger offline mode
             throw e;
         }

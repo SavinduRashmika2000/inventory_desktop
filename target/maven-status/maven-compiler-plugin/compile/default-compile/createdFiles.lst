@@ -1,0 +1,6 @@
+com\sync\AppLauncher.class
+com\sync\scheduler\SyncScheduler.class
+com\sync\service\DatabaseService.class
+com\sync\service\OfflineQueueManager$QueueItem.class
+com\sync\service\OfflineQueueManager.class
+com\sync\scheduler\SyncScheduler$SyncProgress.class
