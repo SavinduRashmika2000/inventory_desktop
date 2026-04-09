@@ -152,7 +152,7 @@
     -fx-padding: 20;
     -fx-font-family: 'JetBrains Mono', 'Consolas', monospace;
     -fx-font-size: 13px;
-    -fx-effect: inner-shadow(three-pass-box, rgba(0,0,0,0.02), 5, 0, 0, 2);
+    -fx-effect: innershadow(three-pass-box, rgba(0,0,0,0.02), 5, 0, 0, 2);
 }
 
 .log-area .content {

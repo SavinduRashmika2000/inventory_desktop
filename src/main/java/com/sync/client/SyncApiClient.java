@@ -66,20 +66,39 @@ public class SyncApiClient {
                 .timeout(Duration.ofMinutes(1))
                 .build();
 
+        return executeSyncRequest(request);
+    }
+
+    public SyncResponse deleteRecords(String tableName, List<Object> ids) throws Exception {
+        String url = baseUrl + "/api/sync/" + tableName;
+        String json = objectMapper.writeValueAsString(ids);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .method("DELETE", HttpRequest.BodyPublishers.ofString(json))
+                .timeout(Duration.ofMinutes(1))
+                .build();
+
+        return executeSyncRequest(request);
+    }
+
+    private SyncResponse executeSyncRequest(HttpRequest request) throws Exception {
         try {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            isOnline = true; // Mark as online on successful response
+            isOnline = true;
 
-            if (response.statusCode() == 200) {
+            int status = response.statusCode();
+            if (status == 200) {
                 return objectMapper.readValue(response.body(), SyncResponse.class);
-            } else if (response.statusCode() == 400) {
+            } else if (status == 400) {
                 SyncResponse syncResponse = objectMapper.readValue(response.body(), SyncResponse.class);
                 throw new ValidationException(syncResponse.getErrors());
             } else {
-                throw new IOException("Sync failed with status code: " + response.statusCode());
+                throw new IOException("Server error during sync: HTTP " + status);
             }
         } catch (java.net.ConnectException | java.net.http.HttpTimeoutException e) {
-            isOnline = false; // Trigger offline mode
+            isOnline = false;
             throw e;
         }
     }

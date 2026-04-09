@@ -127,7 +127,17 @@ public class MainController {
             }
             info.setProcessed(progress.processed());
             info.setTotal(progress.total());
-            info.setStatus(progress.status());
+            
+            String displayStatus = switch (progress.status()) {
+                case "Discovered" -> "🔍 Discovered";
+                case "Pushing..." -> "🚀 Pushing Data";
+                case "Success" -> "✨ Sync Complete";
+                case "Idle" -> "✅ Up to Date";
+                case "Error" -> "❌ Sync Error";
+                case "Invalid Data" -> "⚠️ Validation Error";
+                default -> progress.status();
+            };
+            info.setStatus(displayStatus);
             
             // Mirror online status in header
             // (Assuming SyncScheduler provides an isOnline state in an improved version)

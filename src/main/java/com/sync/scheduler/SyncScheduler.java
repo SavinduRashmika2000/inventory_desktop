@@ -77,7 +77,6 @@ public class SyncScheduler {
             return;
         }
 
-        // Try to recover online status if we were offline
         if (!apiClient.isOnline()) {
             apiClient.checkConnection();
         }
@@ -87,148 +86,156 @@ public class SyncScheduler {
         }
         
         isSyncing = true;
+        log("--- Starting Sync Cycle ---");
         try {
-            // 1. Process Offline Queue First
-            processOfflineQueue();
+            // 1. Process Change Log (Deltas: Deletes, Updates, Inserts)
+            syncDeltaChanges();
 
-            // 2. Process New Data Sync
+            // 2. Perform Full Reconciliation (Cloud=0 sweep)
             syncAllTables();
             
+            log("--- Sync Cycle Completed Successfully ---");
         } catch (Exception e) {
             log("Critical error in sync cycle: " + e.getMessage());
+            e.printStackTrace();
         } finally {
             isSyncing = false;
         }
     }
 
-    private void processOfflineQueue() {
-        List<File> queuedFiles = queueManager.getAllQueuedFiles();
-        if (queuedFiles.isEmpty()) return;
-
-        log("Found " + queuedFiles.size() + " queued batches. Attempting restoration...");
-        for (File file : queuedFiles) {
-            if (!apiClient.isOnline()) {
-                log("System still offline. Skipping queue restoration.");
-                break;
+    private void syncDeltaChanges() {
+        log("Processing delta changes from change_log...");
+        int batchSize = 500;
+        try {
+            List<Map<String, Object>> changes = dbService.getPendingChanges(batchSize);
+            if (changes.isEmpty()) {
+                log("No pending delta changes.");
+                return;
             }
 
-            try {
-                OfflineQueueManager.QueueItem item = queueManager.loadQueueItem(file);
-                log("Retrying queued batch for table: " + item.getTable() + " (Attempt " + (item.getRetryCount() + 1) + ")");
-                
-                apiClient.syncTable(item.getTable(), item.getData());
-                queueManager.deleteQueue(file);
-                log("Successfully restored queued batch: " + file.getName());
-            } catch (SyncApiClient.ValidationException e) {
-                log("Validation error in queued batch. Discarding: " + e.getMessage());
-                queueManager.deleteQueue(file);
-            } catch (Exception e) {
-                log("Retry failed for batch " + file.getName() + ": " + e.getMessage());
-                // Logic to increment retry count could go here if item was re-loaded
+            // Group changes by table and operation to optimize batching
+            Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
+            for (Map<String, Object> change : changes) {
+                String key = change.get("table_name") + ":" + change.get("operation");
+                grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(change);
             }
+
+            for (Map.Entry<String, List<Map<String, Object>>> entry : grouped.entrySet()) {
+                String[] parts = entry.getKey().split(":");
+                String tableName = parts[0];
+                String operation = parts[1];
+                List<Map<String, Object>> logEntries = entry.getValue();
+
+                log(String.format("Processing %d %s operations for %s", logEntries.size(), operation, tableName));
+
+                if ("DELETE".equalsIgnoreCase(operation)) {
+                    List<Object> ids = logEntries.stream().map(e -> e.get("record_id")).toList();
+                    apiClient.deleteRecords(tableName, ids);
+                } else {
+                    // INSERT/UPDATE: We fetch the current state of the records
+                    String pkColumn = dbService.getPrimaryKeyColumn(tableName);
+                    List<Map<String, Object>> records = new ArrayList<>();
+                    for (Map<String, Object> logEntry : logEntries) {
+                        Map<String, Object> record = dbService.getRecordById(tableName, pkColumn, logEntry.get("record_id"));
+                        if (record != null) records.add(record);
+                    }
+                    if (!records.isEmpty()) {
+                        apiClient.syncTable(tableName, records);
+                    }
+                }
+
+                // Mark these changes as synced locally
+                List<Integer> changeIds = logEntries.stream().map(e -> (Integer) e.get("id")).toList();
+                dbService.markChangesSynced(changeIds);
+                log("Completed batch for " + tableName);
+            }
+        } catch (Exception e) {
+            log("Error processing delta changes: " + e.getMessage());
         }
     }
 
     private void syncAllTables() {
-        log("Checking for new data updates...");
+        log(">>> Starting reconciliation sweep...");
         try {
             List<String> tables = dbService.getTableNames();
+            log(">>> Found " + tables.size() + " tables in local database.");
+            
+            // Prioritize customer table and others that are critical for UI feedback
+            tables.sort((a, b) -> {
+                if (a.equalsIgnoreCase("customer")) return -1;
+                if (b.equalsIgnoreCase("customer")) return 1;
+                return a.compareTo(b);
+            });
+
+            // Immediately notify UI about all tables so they appear in the list
             for (String table : tables) {
+                notifyProgress(table, 0, 0, "Discovered");
+            }
+            log(">>> Registered all tables for sync monitoring.");
+
+            for (String table : tables) {
+                if (table.equalsIgnoreCase("customer")) {
+                    log(">>> [PRIORITY] Processing Customer table now...");
+                }
                 syncTable(table);
             }
+            log(">>> Finished reconciliation sweep.");
         } catch (SQLException e) {
-            log("Failed to discover tables: " + e.getMessage());
+            log("!!! ERROR: Failed to discover tables: " + e.getMessage());
         }
     }
 
     private void syncTable(String tableName) {
         try {
-            System.out.println("--- Processing Table: " + tableName + " ---");
-            String initialLastSync = stateStore.getLastSyncTime(tableName);
+            if (!dbService.hasCloudColumn(tableName)) {
+                log("[" + tableName + "] Info: No cloud flag column. Skipping reconciliation.");
+                return;
+            }
+
+            String idColumn = dbService.getPrimaryKeyColumn(tableName);
+            if (idColumn == null) {
+                log("[" + tableName + "] Warn: No Primary Key found. Skipping reconciliation.");
+                return;
+            }
+
             int batchSize = 500;
-            int offset = 0;
             int totalProcessed = 0;
-            String latestTimestampInCycle = initialLastSync;
-            boolean hadError = false;
             
             while (true) {
-                List<Map<String, Object>> batch = dbService.getTableDataBatch(tableName, initialLastSync, batchSize, offset);
-                System.out.println("    Batch Size: " + batch.size() + " at offset: " + offset);
+                List<Map<String, Object>> batch = dbService.getUnsyncedDataBatch(tableName, batchSize);
                 if (batch.isEmpty()) {
                     if (totalProcessed == 0) {
-                        notifyProgress(tableName, 0, 0, "Up to Date");
+                        notifyProgress(tableName, 0, 0, "Idle");
                     }
                     break;
                 }
 
-                log("Syncing " + batch.size() + " records for table: " + tableName + " (Total so far: " + totalProcessed + ")");
-                notifyProgress(tableName, totalProcessed, totalProcessed + batch.size(), "Processing...");
+                log("[" + tableName + "] Reconciling " + batch.size() + " unsynced records...");
+                notifyProgress(tableName, totalProcessed, totalProcessed + batch.size(), "Pushing...");
 
                 try {
                     apiClient.syncTable(tableName, batch);
                     
-                    String batchLatest = getLatestTimestamp(batch);
-                    if (batchLatest != null && (latestTimestampInCycle == null || batchLatest.compareTo(latestTimestampInCycle) > 0)) {
-                        latestTimestampInCycle = batchLatest;
-                    }
+                    // Update local cloud flag
+                    List<Object> ids = batch.stream().map(r -> r.get(idColumn)).toList();
+                    dbService.updateCloudStatus(tableName, idColumn, ids);
                     
                     totalProcessed += batch.size();
-                    log("[" + tableName + "] Successfully synced batch. Total synced so far: " + totalProcessed);
-                    notifyProgress(tableName, totalProcessed, totalProcessed, "Batch Success");
+                    log("[" + tableName + "] Successfully pushed " + batch.size() + " records. (Total: " + totalProcessed + ")");
+                    notifyProgress(tableName, totalProcessed, totalProcessed, "Success");
                     
-                    if (batch.size() < batchSize) {
-                        break; // No more records to fetch
-                    }
-                    offset += batchSize;
-                } catch (SyncApiClient.ValidationException e) {
-                    hadError = true;
-                    log("[" + tableName + "] Validation error: " + e.getMessage() + ". Skipping batch.");
-                    notifyProgress(tableName, totalProcessed, totalProcessed + batch.size(), "Invalid Data");
-                    break;
+                    if (batch.size() < batchSize) break;
                 } catch (Exception e) {
-                    hadError = true;
-                    if (!apiClient.isOnline()) {
-                        queueManager.saveQueue(tableName, batch);
-                        log("[" + tableName + "] System went offline. Batch moved to local queue.");
-                        notifyProgress(tableName, totalProcessed, totalProcessed + batch.size(), "Offline (Queued)");
-                    } else {
-                        log("[" + tableName + "] API Error: " + e.getMessage());
-                        notifyProgress(tableName, totalProcessed, totalProcessed + batch.size(), "API Error");
-                    }
+                    log("[" + tableName + "] Sync Error: " + e.getMessage());
+                    notifyProgress(tableName, totalProcessed, totalProcessed + batch.size(), "Error");
                     break;
                 }
             }
             
-            // Only update lastSyncTime if we fetched and synced at least something
-            if (latestTimestampInCycle != null && !latestTimestampInCycle.equals(initialLastSync)) {
-                stateStore.updateLastSyncTime(tableName, latestTimestampInCycle);
-            }
-            
-            // At the end of a successful full-table batch loop, ask the server for status
-            if (totalProcessed > 0 && !hadError) {
-                 try {
-                     com.sync.dto.SyncStatusResponse status = apiClient.getSyncStatus(tableName);
-                     if (status != null) {
-                         log("[" + tableName + "] Sync Complete. Cloud total items: " + status.getTotalRecords() + " (Last Sync: " + status.getLastSyncTimestamp() + ")");
-                         notifyProgress(tableName, totalProcessed, totalProcessed, "Success");
-                     }
-                 } catch (Exception e) {
-                     log("[" + tableName + "] Failed to get sync status: " + e.getMessage());
-                     notifyProgress(tableName, totalProcessed, totalProcessed, "Success");
-                 }
-            }
-            
         } catch (Exception e) {
-            log("[" + tableName + "] Processing error: " + e.getMessage());
+            log("[" + tableName + "] Critical System Error: " + e.getMessage());
+            e.printStackTrace();
         }
-    }
-
-    private String getLatestTimestamp(List<Map<String, Object>> batch) {
-        return batch.stream()
-                .filter(row -> row.containsKey("updated_at"))
-                .map(row -> (String) row.get("updated_at"))
-                .max(String::compareTo)
-                .orElse(null);
     }
 
     private void log(String message) {
@@ -256,4 +263,5 @@ public class SyncScheduler {
             scheduler.shutdownNow();
         }
     }
+
 }
