@@ -1,141 +1,173 @@
-/* Premium Glassmorphism Design System */
+/* 
+   Premium SaaS Design System 
+   Light Mode Evolution 
+*/
 
 .main-container {
-    -fx-background-color: linear-gradient(to bottom right, #0f172a, #1e293b);
+    -fx-background-color: linear-gradient(to bottom right, #f8fafc, #f1f5f9);
     -fx-font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
 }
 
-/* Glass Card Effect */
-.glass-pane {
-    -fx-background-color: rgba(255, 255, 255, 0.05);
-    -fx-background-radius: 16;
-    -fx-border-color: rgba(255, 255, 255, 0.1);
-    -fx-border-radius: 16;
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.3), 20, 0, 0, 10);
-}
-
-.header-box {
-    -fx-padding: 0 0 20 0;
-}
-
-.header-box .label {
-    -fx-text-fill: white;
-    -fx-font-size: 28px;
+/* Typography Scale */
+.header-title {
+    -fx-text-fill: #0f172a;
+    -fx-font-size: 34px;
     -fx-font-weight: 900;
-    -fx-effect: dropshadow(three-pass-box, rgba(255, 255, 255, 0.1), 10, 0, 0, 0);
+    -fx-letter-spacing: -0.5px;
 }
 
-#statusLabel {
-    -fx-background-color: rgba(6, 182, 212, 0.1);
-    -fx-text-fill: #06b6d4;
-    -fx-padding: 5 15;
-    -fx-background-radius: 20;
-    -fx-border-color: rgba(6, 182, 212, 0.3);
-    -fx-border-radius: 20;
+.header-subtitle {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 15px;
+    -fx-font-weight: 500;
 }
 
-/* Premium Buttons with Gradients & Glow */
+.section-header {
+    -fx-text-fill: #334155;
+    -fx-font-size: 20px;
+    -fx-font-weight: 700;
+}
+
+.activity-header {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-text-transform: uppercase;
+    -fx-letter-spacing: 1px;
+}
+
+/* Status Pill - Rule 2 (Blue background, White text) */
+.status-pill {
+    -fx-background-color: linear-gradient(to right, #4f46e5, #6366f1);
+    -fx-text-fill: white;
+    -fx-padding: 8 20;
+    -fx-background-radius: 50;
+    -fx-font-weight: 700;
+    -fx-font-size: 13px;
+    -fx-effect: dropshadow(three-pass-box, rgba(79, 70, 229, 0.2), 15, 0, 0, 5);
+}
+
+/* Glass Card - Rule 1 (White background, Black text) */
+.glass-pane {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 24;
+    -fx-border-color: rgba(226, 232, 240, 0.8);
+    -fx-border-radius: 24;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.04), 40, 0, 0, 20);
+}
+
+/* Premium Buttons - Rule 2 (Color background, White text) */
 .button {
     -fx-background-radius: 12;
-    -fx-padding: 12 30;
+    -fx-padding: 12 28;
     -fx-text-fill: white;
     -fx-font-weight: 800;
     -fx-cursor: hand;
-    -fx-transition: all 0.3s ease;
+    -fx-transition: all 0.2s ease;
 }
 
 .btn-primary {
-    -fx-background-color: linear-gradient(to right, #3b82f6, #8b5cf6);
-    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.4), 15, 0, 0, 0);
+    -fx-background-color: linear-gradient(to right, #6366f1, #8b5cf6);
+    -fx-effect: dropshadow(three-pass-box, rgba(99, 102, 241, 0.3), 15, 0, 0, 5);
 }
 .btn-primary:hover {
-    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.7), 20, 0, 0, 0);
+    -fx-effect: dropshadow(three-pass-box, rgba(99, 102, 241, 0.5), 20, 0, 0, 8);
     -fx-translate-y: -2px;
 }
 
 .btn-danger {
     -fx-background-color: linear-gradient(to right, #ef4444, #f43f5e);
-    -fx-effect: dropshadow(three-pass-box, rgba(239, 68, 68, 0.4), 15, 0, 0, 0);
+    -fx-effect: dropshadow(three-pass-box, rgba(239, 68, 68, 0.2), 15, 0, 0, 5);
 }
 .btn-danger:hover {
-    -fx-effect: dropshadow(three-pass-box, rgba(239, 68, 68, 0.7), 20, 0, 0, 0);
     -fx-translate-y: -2px;
 }
 
 .btn-accent {
-    -fx-background-color: linear-gradient(to right, #ec4899, #8b5cf6);
-    -fx-effect: dropshadow(three-pass-box, rgba(236, 72, 153, 0.4), 15, 0, 0, 0);
+    -fx-background-color: #0f172a; /* Slate Black background */
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(15, 23, 42, 0.15), 15, 0, 0, 5);
 }
 
-/* Modern Data Table */
-.table-view {
+/* Modern Borderless Table - Rule 1 (White background, Black text) */
+.modern-table {
     -fx-background-color: transparent;
     -fx-background-radius: 16;
 }
 
-.table-view .column-header-background {
-    -fx-background-color: rgba(255, 255, 255, 0.03);
+.modern-table .column-header-background {
+    -fx-background-color: #f8fafc;
     -fx-background-radius: 16 16 0 0;
+    -fx-border-color: #f1f5f9;
+    -fx-border-width: 0 0 1 0;
 }
 
-.table-view .column-header {
+.modern-table .column-header {
     -fx-background-color: transparent;
-    -fx-size: 50;
-    -fx-padding: 10;
+    -fx-size: 55;
+    -fx-padding: 15;
 }
 
-.table-view .column-header .label {
+.modern-table .column-header .label {
     -fx-text-fill: #94a3b8;
-    -fx-font-weight: 700;
-    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-font-size: 11px;
     -fx-text-transform: uppercase;
+    -fx-letter-spacing: 0.5px;
 }
 
 .table-row-cell {
     -fx-background-color: transparent;
-    -fx-text-fill: #e2e8f0;
-    -fx-cell-size: 50;
-    -fx-border-color: rgba(255, 255, 255, 0.05);
+    -fx-text-fill: #334155;
+    -fx-cell-size: 55;
+    -fx-border-color: #f8fafc;
     -fx-border-width: 0 0 1 0;
 }
 
 .table-row-cell:odd {
-    -fx-background-color: rgba(255, 255, 255, 0.01);
+    -fx-background-color: #fafbfd;
 }
 
 .table-row-cell:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-background-color: #f1f5f9;
 }
 
 .table-row-cell:selected {
-    -fx-background-color: rgba(59, 130, 246, 0.2);
+    -fx-background-color: #eef2ff;
+}
+.table-row-cell:selected .text {
+    -fx-fill: #4f46e5;
+    -fx-font-weight: bold;
 }
 
-/* Log Area - Terminal Style */
+/* Premium Log Area - Rule 1 (White background, Black text) */
 .log-area {
-    -fx-control-inner-background: rgba(15, 23, 42, 0.8);
-    -fx-text-fill: white;
-    -fx-background-radius: 16;
-    -fx-border-radius: 16;
-    -fx-border-color: rgba(255, 255, 255, 0.1);
-    -fx-padding: 15;
+    -fx-control-inner-background: #ffffff;
+    -fx-text-fill: #475569;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-padding: 20;
     -fx-font-family: 'JetBrains Mono', 'Consolas', monospace;
+    -fx-font-size: 13px;
+    -fx-effect: inner-shadow(three-pass-box, rgba(0,0,0,0.02), 5, 0, 0, 2);
 }
 
 .log-area .content {
     -fx-background-color: transparent;
 }
 
-/* Smooth Scrollbars */
+/* Custom Scrollbars */
 .scroll-bar:vertical {
     -fx-background-color: transparent;
-    -fx-pref-width: 8;
+    -fx-pref-width: 6;
 }
 .scroll-bar:vertical .thumb {
-    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-background-color: #cbd5e1;
     -fx-background-radius: 10;
 }
 .scroll-bar:vertical .thumb:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.4);
+    -fx-background-color: #94a3b8;
 }
