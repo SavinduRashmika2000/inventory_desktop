@@ -12,7 +12,7 @@ public class DatabaseService {
     private final String password;
 
     public DatabaseService(String host, String port, String dbName, String user, String password) {
-        this.url = String.format("jdbc:mysql://%s:%s/%s?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC", host, port, dbName);
+        this.url = String.format("jdbc:mysql://%s:%s/%s?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&zeroDateTimeBehavior=CONVERT_TO_NULL", host, port, dbName);
         this.user = user;
         this.password = password;
     }
@@ -127,14 +127,21 @@ public class DatabaseService {
                 Map<String, Object> row = new LinkedHashMap<>();
                 for (int i = 1; i <= columnCount; i++) {
                     String columnName = metaData.getColumnName(i);
-                    Object value = rs.getObject(i);
-                    
-                    if (value instanceof java.sql.Timestamp ts) {
-                        value = ts.toInstant().toString();
-                    } else if (value instanceof java.sql.Date d) {
-                        value = d.toString();
-                    } else if (value instanceof java.sql.Time t) {
-                        value = t.toString();
+                    Object value = null;
+                    try {
+                        value = rs.getObject(i);
+                        
+                        if (value instanceof java.sql.Timestamp ts) {
+                            value = ts.toInstant().toString();
+                        } else if (value instanceof java.sql.Date d) {
+                            value = d.toString();
+                        } else if (value instanceof java.sql.Time t) {
+                            value = t.toString();
+                        }
+                    } catch (Exception e) {
+                        log.warn("Error reading column {} in {}: {}", columnName, sql, e.getMessage());
+                        // Fallback: try to read as string if object-mapping fails
+                        try { value = rs.getString(i); } catch (Exception ignored) {}
                     }
                     row.put(columnName, value);
                 }
