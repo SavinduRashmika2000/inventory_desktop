@@ -134,41 +134,77 @@ public class SyncScheduler {
 
     private void syncTable(String tableName) {
         try {
-            String lastSync = stateStore.getLastSyncTime(tableName);
+            String initialLastSync = stateStore.getLastSyncTime(tableName);
             int batchSize = 500;
+            int offset = 0;
+            int totalProcessed = 0;
+            String latestTimestampInCycle = initialLastSync;
+            boolean hadError = false;
             
-            List<Map<String, Object>> batch = dbService.getTableDataBatch(tableName, lastSync, batchSize);
-            if (batch.isEmpty()) {
-                notifyProgress(tableName, 0, 0, "Up to Date");
-                return;
+            while (true) {
+                List<Map<String, Object>> batch = dbService.getTableDataBatch(tableName, initialLastSync, batchSize, offset);
+                if (batch.isEmpty()) {
+                    if (totalProcessed == 0) {
+                        notifyProgress(tableName, 0, 0, "Up to Date");
+                    }
+                    break;
+                }
+
+                log("Syncing " + batch.size() + " records for table: " + tableName + " (Total so far: " + totalProcessed + ")");
+                notifyProgress(tableName, totalProcessed, totalProcessed + batch.size(), "Processing...");
+
+                try {
+                    apiClient.syncTable(tableName, batch);
+                    
+                    String batchLatest = getLatestTimestamp(batch);
+                    if (batchLatest != null && (latestTimestampInCycle == null || batchLatest.compareTo(latestTimestampInCycle) > 0)) {
+                        latestTimestampInCycle = batchLatest;
+                    }
+                    
+                    totalProcessed += batch.size();
+                    log("[" + tableName + "] Successfully synced batch. Total synced so far: " + totalProcessed);
+                    notifyProgress(tableName, totalProcessed, totalProcessed, "Batch Success");
+                    
+                    if (batch.size() < batchSize) {
+                        break; // No more records to fetch
+                    }
+                    offset += batchSize;
+                } catch (SyncApiClient.ValidationException e) {
+                    hadError = true;
+                    log("[" + tableName + "] Validation error: " + e.getMessage() + ". Skipping batch.");
+                    notifyProgress(tableName, totalProcessed, totalProcessed + batch.size(), "Invalid Data");
+                    break;
+                } catch (Exception e) {
+                    hadError = true;
+                    if (!apiClient.isOnline()) {
+                        queueManager.saveQueue(tableName, batch);
+                        log("[" + tableName + "] System went offline. Batch moved to local queue.");
+                        notifyProgress(tableName, totalProcessed, totalProcessed + batch.size(), "Offline (Queued)");
+                    } else {
+                        log("[" + tableName + "] API Error: " + e.getMessage());
+                        notifyProgress(tableName, totalProcessed, totalProcessed + batch.size(), "API Error");
+                    }
+                    break;
+                }
             }
-
-            log("Syncing " + batch.size() + " records for table: " + tableName);
-            notifyProgress(tableName, 0, batch.size(), "Processing...");
-
-            try {
-                apiClient.syncTable(tableName, batch);
-                
-                // On success, update the state
-                String newLastSync = getLatestTimestamp(batch);
-                if (newLastSync != null) {
-                    stateStore.updateLastSyncTime(tableName, newLastSync);
-                }
-                
-                log("[" + tableName + "] Successfully synced batch.");
-                notifyProgress(tableName, batch.size(), batch.size(), "Success");
-            } catch (SyncApiClient.ValidationException e) {
-                log("[" + tableName + "] Validation error: " + e.getMessage() + ". Skipping batch.");
-                notifyProgress(tableName, 0, batch.size(), "Invalid Data");
-            } catch (Exception e) {
-                if (!apiClient.isOnline()) {
-                    queueManager.saveQueue(tableName, batch);
-                    log("[" + tableName + "] System went offline. Batch moved to local queue.");
-                    notifyProgress(tableName, 0, batch.size(), "Offline (Queued)");
-                } else {
-                    log("[" + tableName + "] API Error: " + e.getMessage());
-                    notifyProgress(tableName, 0, batch.size(), "API Error");
-                }
+            
+            // Only update lastSyncTime if we fetched and synced at least something
+            if (latestTimestampInCycle != null && !latestTimestampInCycle.equals(initialLastSync)) {
+                stateStore.updateLastSyncTime(tableName, latestTimestampInCycle);
+            }
+            
+            // At the end of a successful full-table batch loop, ask the server for status
+            if (totalProcessed > 0 && !hadError) {
+                 try {
+                     com.sync.dto.SyncStatusResponse status = apiClient.getSyncStatus(tableName);
+                     if (status != null) {
+                         log("[" + tableName + "] Sync Complete. Cloud total items: " + status.getTotalRecords() + " (Last Sync: " + status.getLastSyncTimestamp() + ")");
+                         notifyProgress(tableName, totalProcessed, totalProcessed, "Success");
+                     }
+                 } catch (Exception e) {
+                     log("[" + tableName + "] Failed to get sync status: " + e.getMessage());
+                     notifyProgress(tableName, totalProcessed, totalProcessed, "Success");
+                 }
             }
             
         } catch (Exception e) {

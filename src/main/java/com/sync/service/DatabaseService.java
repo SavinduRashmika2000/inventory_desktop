@@ -51,15 +51,15 @@ public class DatabaseService {
         }
     }
 
-    public List<Map<String, Object>> getTableDataBatch(String tableName, String lastSyncTime, int limit) throws SQLException {
+    public List<Map<String, Object>> getTableDataBatch(String tableName, String lastSyncTime, int limit, int offset) throws SQLException {
         List<Map<String, Object>> records = new ArrayList<>();
         boolean incremental = hasUpdatedAtColumn(tableName) && lastSyncTime != null;
         
         String sql;
         if (incremental) {
-            sql = String.format("SELECT * FROM %s WHERE updated_at > ? ORDER BY updated_at LIMIT %d", tableName, limit);
+            sql = String.format("SELECT * FROM %s WHERE updated_at > ? ORDER BY updated_at LIMIT %d OFFSET %d", tableName, limit, offset);
         } else {
-            sql = String.format("SELECT * FROM %s LIMIT %d", tableName, limit);
+            sql = String.format("SELECT * FROM %s LIMIT %d OFFSET %d", tableName, limit, offset);
         }
         
         try (Connection conn = getConnection();
