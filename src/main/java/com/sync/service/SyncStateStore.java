@@ -12,20 +12,28 @@ import java.util.Map;
 @Slf4j
 public class SyncStateStore {
 
+    public static class TableState {
+        public String lastSyncTime;
+        public Integer lastCloudCount;
+    }
+
     private static final String STATE_FILE = "sync-state.json";
     private final ObjectMapper mapper = new ObjectMapper();
-    private Map<String, String> syncStates = new HashMap<>();
+    private Map<String, TableState> tableStates = new HashMap<>();
 
     public SyncStateStore() {
         load();
     }
 
-    public synchronized String getLastSyncTime(String tableName) {
-        return syncStates.get(tableName);
+    public synchronized TableState getTableState(String tableName) {
+        return tableStates.getOrDefault(tableName, new TableState());
     }
 
-    public synchronized void updateLastSyncTime(String tableName, String timestamp) {
-        syncStates.put(tableName, timestamp);
+    public synchronized void updateTableState(String tableName, String timestamp, Integer cloudCount) {
+        TableState state = tableStates.getOrDefault(tableName, new TableState());
+        if (timestamp != null) state.lastSyncTime = timestamp;
+        if (cloudCount != null) state.lastCloudCount = cloudCount;
+        tableStates.put(tableName, state);
         save();
     }
 
@@ -33,8 +41,8 @@ public class SyncStateStore {
         File file = new File(STATE_FILE);
         if (file.exists()) {
             try {
-                syncStates = mapper.readValue(file, new TypeReference<Map<String, String>>() {});
-                log.info("Loaded sync states for {} tables", syncStates.size());
+                tableStates = mapper.readValue(file, new TypeReference<Map<String, TableState>>() {});
+                log.info("Loaded sync states for {} tables", tableStates.size());
             } catch (IOException e) {
                 log.error("Failed to load sync state file", e);
             }
@@ -43,7 +51,7 @@ public class SyncStateStore {
 
     private void save() {
         try {
-            mapper.writeValue(new File(STATE_FILE), syncStates);
+            mapper.writeValue(new File(STATE_FILE), tableStates);
         } catch (IOException e) {
             log.error("Failed to save sync state file", e);
         }

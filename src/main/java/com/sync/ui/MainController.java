@@ -130,6 +130,7 @@ public class MainController {
             
             String displayStatus = switch (progress.status()) {
                 case "Discovered" -> "🔍 Discovered";
+                case "Auditing" -> "⚖️ Checking Parity";
                 case "Pushing..." -> "🚀 Pushing Data";
                 case "Success" -> "✨ Sync Complete";
                 case "Idle" -> "✅ Up to Date";

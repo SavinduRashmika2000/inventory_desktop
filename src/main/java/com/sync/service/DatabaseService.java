@@ -118,6 +118,27 @@ public class DatabaseService {
         }
     }
 
+    public int getTotalCount(String tableName) throws SQLException {
+        String sql = String.format("SELECT count(*) FROM `%s` ", tableName);
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 0;
+    }
+
+    public int getUnsyncedCount(String tableName) throws SQLException {
+        if (!hasCloudColumn(tableName)) return 0;
+        String sql = String.format("SELECT count(*) FROM `%s` WHERE cloud = 0", tableName);
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 0;
+    }
+
     private List<Map<String, Object>> executeQueryToMap(String sql) throws SQLException {
         List<Map<String, Object>> records = new ArrayList<>();
         System.out.println(">>> DB Executing: " + sql);

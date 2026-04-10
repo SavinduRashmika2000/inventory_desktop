@@ -201,6 +201,30 @@ public class SyncScheduler {
                 return;
             }
 
+            // --- Audit Phase ---
+            notifyProgress(tableName, 0, 0, "Auditing");
+            int localTotal = dbService.getTotalCount(tableName);
+            int localUnsynced = dbService.getUnsyncedCount(tableName);
+            
+            com.sync.dto.SyncStatusResponse cloudStatus = null;
+            try {
+                cloudStatus = apiClient.getSyncStatus(tableName);
+            } catch (Exception e) {
+                log("[" + tableName + "] Status Check Failed: " + e.getMessage());
+            }
+
+            if (cloudStatus != null) {
+                int cloudTotal = cloudStatus.getTotalRecords();
+                if (localTotal == cloudTotal && localUnsynced == 0) {
+                    log("[" + tableName + "] Skipping: Parity achieved (" + localTotal + " records).");
+                    notifyProgress(tableName, localTotal, localTotal, "Success");
+                    stateStore.updateTableState(tableName, cloudStatus.getLastSyncTimestamp().toString(), cloudTotal);
+                    return;
+                }
+                log("[" + tableName + "] Audit: Local=" + localTotal + ", Cloud=" + cloudTotal + ", Unsynced=" + localUnsynced);
+            }
+
+            // --- Sync Phase (Reconciliation) ---
             int batchSize = 500;
             int totalProcessed = 0;
             
@@ -208,13 +232,13 @@ public class SyncScheduler {
                 List<Map<String, Object>> batch = dbService.getUnsyncedDataBatch(tableName, batchSize);
                 if (batch.isEmpty()) {
                     if (totalProcessed == 0) {
-                        notifyProgress(tableName, 0, 0, "Idle");
+                        notifyProgress(tableName, localTotal, localTotal, "Idle");
                     }
                     break;
                 }
 
                 log("[" + tableName + "] Reconciling " + batch.size() + " unsynced records...");
-                notifyProgress(tableName, totalProcessed, totalProcessed + batch.size(), "Pushing...");
+                notifyProgress(tableName, totalProcessed, localTotal, "Pushing...");
 
                 try {
                     apiClient.syncTable(tableName, batch);
@@ -225,14 +249,19 @@ public class SyncScheduler {
                     
                     totalProcessed += batch.size();
                     log("[" + tableName + "] Successfully pushed " + batch.size() + " records. (Total: " + totalProcessed + ")");
-                    notifyProgress(tableName, totalProcessed, totalProcessed, "Success");
+                    notifyProgress(tableName, totalProcessed, localTotal, "Success");
                     
                     if (batch.size() < batchSize) break;
                 } catch (Exception e) {
                     log("[" + tableName + "] Sync Error: " + e.getMessage());
-                    notifyProgress(tableName, totalProcessed, totalProcessed + batch.size(), "Error");
+                    notifyProgress(tableName, totalProcessed, localTotal, "Error");
                     break;
                 }
+            }
+            
+            // Update local state after successful reconciliation
+            if (cloudStatus != null) {
+                stateStore.updateTableState(tableName, null, dbService.getTotalCount(tableName));
             }
             
         } catch (Exception e) {
