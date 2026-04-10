@@ -3,7 +3,7 @@ import java.util.*;
 
 public class db_diag {
     public static void main(String[] args) {
-        String url = "jdbc:mysql://localhost:3306/itmind_inventory_desktop?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+        String url = "jdbc:mysql://localhost:3306/itmind_inventory_desktop?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&zeroDateTimeBehavior=CONVERT_TO_NULL";
         String user = "root";
         String password = "";
 
@@ -39,12 +39,17 @@ public class db_diag {
             }
             System.out.println("Customer has cloud column: " + hasCloud);
 
-            // Test 3: Unsynced Data Fetch
-            System.out.println("\n--- Testing Unsynced Data Fetch (customer) ---");
+            // Test 3: Unsynced Data Fetch (customer 25)
+            System.out.println("\n--- Testing Fetch for idcustomer = 25 ---");
             try (Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery("SELECT count(*) FROM customer WHERE cloud = 0")) {
+                 ResultSet rs = stmt.executeQuery("SELECT * FROM customer WHERE idcustomer = 25")) {
                 if (rs.next()) {
-                    System.out.println("Unsynced customers: " + rs.getInt(1));
+                    ResultSetMetaData md = rs.getMetaData();
+                    for (int i = 1; i <= md.getColumnCount(); i++) {
+                        System.out.println(md.getColumnName(i) + ": " + rs.getObject(i));
+                    }
+                } else {
+                    System.out.println("ID 25 NOT FOUND in local DB.");
                 }
             }
 

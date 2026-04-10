@@ -22,6 +22,7 @@ public class DatabaseService {
     }
 
     public List<String> getTableNames() throws SQLException {
+        System.out.println(">>> DB: Fetching table names...");
         List<String> tables = new ArrayList<>();
         // Prefer direct query for speed and reliability in MySQL
         String sql = "SHOW TABLES";
@@ -32,6 +33,7 @@ public class DatabaseService {
                 tables.add(rs.getString(1));
             }
         }
+        System.out.println(">>> DB: Found " + tables.size() + " tables.");
         return tables;
     }
 
@@ -51,7 +53,7 @@ public class DatabaseService {
                 }
             }
         } catch (SQLException e) {
-            log.warn("Could not find primary key for {}: {}", tableName, e.getMessage());
+            System.err.println(">>> DB Error (PK) for " + tableName + ": " + e.getMessage());
         }
         return null;
     }
@@ -82,9 +84,11 @@ public class DatabaseService {
     }
 
     public List<Map<String, Object>> getPendingChanges(int limit) throws SQLException {
+        System.out.println(">>> DB: Checking change_log...");
         String sql = String.format("SELECT * FROM change_log WHERE synced = 0 LIMIT %d", limit);
         return executeQueryToMap(sql);
     }
+
 
     public void updateCloudStatus(String tableName, String idColumn, List<Object> ids) throws SQLException {
         if (ids.isEmpty()) return;
@@ -116,6 +120,7 @@ public class DatabaseService {
 
     private List<Map<String, Object>> executeQueryToMap(String sql) throws SQLException {
         List<Map<String, Object>> records = new ArrayList<>();
+        System.out.println(">>> DB Executing: " + sql);
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -139,7 +144,7 @@ public class DatabaseService {
                             value = t.toString();
                         }
                     } catch (Exception e) {
-                        log.warn("Error reading column {} in {}: {}", columnName, sql, e.getMessage());
+                        System.err.println(">>> DB: Column mapping error (" + columnName + "): " + e.getMessage());
                         // Fallback: try to read as string if object-mapping fails
                         try { value = rs.getString(i); } catch (Exception ignored) {}
                     }
@@ -148,6 +153,7 @@ public class DatabaseService {
                 records.add(row);
             }
         }
+        System.out.println(">>> DB: Returns " + records.size() + " records.");
         return records;
     }
 

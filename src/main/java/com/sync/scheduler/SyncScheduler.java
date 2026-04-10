@@ -10,8 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
@@ -73,7 +72,7 @@ public class SyncScheduler {
 
     private void runSyncCycle() {
         if (isSyncing) {
-            log("Sync cycle already in progress, skipping...");
+            System.out.println(">>> Sync already in progress...");
             return;
         }
 
@@ -82,34 +81,38 @@ public class SyncScheduler {
         }
 
         if (!apiClient.isOnline()) {
+            System.out.println(">>> System Offline. Skipping cycle.");
             return;
         }
         
         isSyncing = true;
-        log("--- Starting Sync Cycle ---");
+        System.out.println(">>> --- Starting Sync Cycle ---");
         try {
             // 1. Process Change Log (Deltas: Deletes, Updates, Inserts)
+            System.out.println(">>> Part 1: Delta Changes...");
             syncDeltaChanges();
 
             // 2. Perform Full Reconciliation (Cloud=0 sweep)
+            System.out.println(">>> Part 2: Reconciliation...");
             syncAllTables();
             
-            log("--- Sync Cycle Completed Successfully ---");
-        } catch (Exception e) {
-            log("Critical error in sync cycle: " + e.getMessage());
-            e.printStackTrace();
+            System.out.println(">>> --- Sync Cycle Completed ---");
+        } catch (Throwable t) {
+            System.err.println(">>> CRITICAL ERROR in sync cycle: " + t.getClass().getName() + " - " + t.getMessage());
+            t.printStackTrace();
         } finally {
             isSyncing = false;
         }
     }
 
     private void syncDeltaChanges() {
-        log("Processing delta changes from change_log...");
+        System.out.println(">>> syncDeltaChanges() called...");
         int batchSize = 500;
         try {
+            System.out.println(">>> Calling dbService.getPendingChanges()...");
             List<Map<String, Object>> changes = dbService.getPendingChanges(batchSize);
+            System.out.println(">>> Pending changes count: " + (changes == null ? "null" : changes.size()));
             if (changes.isEmpty()) {
-                log("No pending delta changes.");
                 return;
             }
 
