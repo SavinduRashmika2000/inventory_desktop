@@ -1,0 +1,32 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------< com.sync:inventory-desktop-sync >-------------------
+[INFO] Building inventory-desktop-sync 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> javafx:0.0.8:run (default-cli) > process-classes @ inventory-desktop-sync >>>
+[WARNING] 6 problems were encountered while building the effective model for org.openjfx:javafx-controls:jar:21.0.1 during dependency collection step for project (use -X to see details)
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ inventory-desktop-sync ---
+[INFO] Copying 3 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ inventory-desktop-sync ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< javafx:0.0.8:run (default-cli) < process-classes @ inventory-desktop-sync <<<
+[INFO] 
+[INFO] 
+[INFO] --- javafx:0.0.8:run (default-cli) @ inventory-desktop-sync ---
+>>> --- Starting Sync Cycle ---
+>>> Part 1: Delta Changes...
+>>> syncDeltaChanges() called...
+>>> Calling dbService.getPendingChanges()...
+>>> DB: Checking change_log...
+>>> DB Executing: SELECT * FROM change_log WHERE synced = 0 LIMIT 500
+>>> DB: Returns 0 records.
+>>> Pending changes count: 0
+>>> Part 2: Reconciliation...
+>>> DB: Fetching table names...
+>>> DB: Found 86 tables.
+>>> --- Sync Cycle Completed ---
