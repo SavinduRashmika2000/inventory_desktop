@@ -17,67 +17,87 @@ import java.util.stream.Stream;
 @Slf4j
 public class OfflineQueueManager {
 
-    private static final String QUEUE_DIR = "sync-queue";
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final String rootDir;
+    private final Path pendingDir;
+    private final Path failedDir;
+    private final Path successDir;
+    private final ObjectMapper mapper = new ObjectMapper()
+            .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
 
-    public OfflineQueueManager() {
+    public OfflineQueueManager(String rootDir) {
+        this.rootDir = rootDir;
+        this.pendingDir = Paths.get(rootDir, "pending");
+        this.failedDir = Paths.get(rootDir, "failed");
+        this.successDir = Paths.get(rootDir, "success");
+        init();
+    }
+
+    private void init() {
         try {
-            Files.createDirectories(Paths.get(QUEUE_DIR));
+            Files.createDirectories(pendingDir);
+            Files.createDirectories(failedDir);
+            Files.createDirectories(successDir);
         } catch (IOException e) {
-            log.error("Failed to create queue directory", e);
+            log.error("Failed to create queue directories", e);
         }
     }
 
     public void saveQueue(String tableName, List<Map<String, Object>> data) {
         try {
-            Path tableDir = Paths.get(QUEUE_DIR, tableName);
-            Files.createDirectories(tableDir);
-
-            String fileName = System.currentTimeMillis() + ".json";
-            File file = tableDir.resolve(fileName).toFile();
+            String fileName = String.format("%d_%s.json", System.currentTimeMillis(), tableName);
+            File file = pendingDir.resolve(fileName).toFile();
 
             QueueItem item = new QueueItem();
             item.setTable(tableName);
             item.setData(data);
             item.setRetryCount(0);
+            item.setLastAttemptTime(null);
 
             mapper.writeValue(file, item);
-            log.info("Saved offline batch to queue: {}", file.getAbsolutePath());
+            log.info("Saved batch to pending queue: {}", file.getAbsolutePath());
         } catch (IOException e) {
             log.error("Failed to save offline queue for table: " + tableName, e);
         }
     }
 
-    public List<File> getAllQueuedFiles() {
-        List<File> allFiles = new ArrayList<>();
-        try (Stream<Path> paths = Files.walk(Paths.get(QUEUE_DIR))) {
+    public List<File> getPendingFiles() {
+        List<File> files = new ArrayList<>();
+        try (Stream<Path> paths = Files.list(pendingDir)) {
             paths.filter(Files::isRegularFile)
                  .filter(p -> p.toString().endsWith(".json"))
-                 .forEach(p -> allFiles.add(p.toFile()));
+                 .sorted(Comparator.comparing(p -> p.getFileName().toString())) // FIFO via timestamp prefix
+                 .forEach(p -> files.add(p.toFile()));
         } catch (IOException e) {
-            log.error("Failed to walk queue directory", e);
+            log.error("Failed to list pending files", e);
         }
-        return allFiles;
+        return files;
     }
 
     public QueueItem loadQueueItem(File file) throws IOException {
         return mapper.readValue(file, QueueItem.class);
     }
 
-    public void deleteQueue(File file) {
-        if (file.delete()) {
-            log.info("Deleted processed queue file: {}", file.getName());
-        } else {
-            log.warn("Failed to delete queue file: {}", file.getName());
+    public void moveToSuccess(File file) {
+        moveFile(file, successDir.resolve(file.getName()));
+    }
+
+    public void moveToFailed(File file, QueueItem item) {
+        try {
+            item.setRetryCount(item.getRetryCount() + 1);
+            item.setLastAttemptTime(java.time.LocalDateTime.now());
+            mapper.writeValue(file, item); // Update metadata in place before moving
+            moveFile(file, failedDir.resolve(file.getName()));
+        } catch (IOException e) {
+            log.error("Failed to update and move file to failed: " + file.getName(), e);
         }
     }
 
-    public void incrementRetryCount(File file, QueueItem item) {
+    private void moveFile(File source, Path target) {
         try {
-            item.setRetryCount(item.getRetryCount() + 1);
-            mapper.writeValue(file, item);
+            Files.move(source.toPath(), target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            log.info("Moved queue file {} to {}", source.getName(), target.getParent().getFileName());
         } catch (IOException e) {
-            log.error("Failed to update retry count for file: " + file.getName(), e);
+            log.error("Failed to move file: " + source.getName(), e);
         }
     }
 
@@ -86,5 +106,6 @@ public class OfflineQueueManager {
         private String table;
         private List<Map<String, Object>> data;
         private int retryCount;
+        private java.time.LocalDateTime lastAttemptTime;
     }
 }

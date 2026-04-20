@@ -23,31 +23,41 @@ public class SyncScheduler {
     private final SyncStateStore stateStore;
     
     private final ScheduledExecutorService scheduler;
+    private final ExecutorService syncThreadPool;
+    private final Set<String> activeSyncs = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    
     private ScheduledFuture<?> syncTask;
     private final long intervalMinutes;
+    private final int batchSize;
+    private final int maxConcurrency;
     
     private Consumer<String> logListener;
-    private Consumer<SyncProgress> progressListener;
-    private boolean isSyncing = false;
+    private Consumer<SyncWorker.SyncProgress> progressListener;
+    private boolean isCycleRunning = false;
 
     public SyncScheduler(DatabaseService dbService, 
                         SyncApiClient apiClient, 
                         OfflineQueueManager queueManager,
                         SyncStateStore stateStore,
-                        long intervalMinutes) {
+                        long intervalMinutes,
+                        int batchSize,
+                        int maxConcurrency) {
         this.dbService = dbService;
         this.apiClient = apiClient;
         this.queueManager = queueManager;
         this.stateStore = stateStore;
         this.intervalMinutes = intervalMinutes;
+        this.batchSize = batchSize;
+        this.maxConcurrency = maxConcurrency;
         this.scheduler = Executors.newSingleThreadScheduledExecutor();
+        this.syncThreadPool = Executors.newFixedThreadPool(maxConcurrency);
     }
 
     public void setLogListener(Consumer<String> logListener) {
         this.logListener = logListener;
     }
 
-    public void setProgressListener(Consumer<SyncProgress> progressListener) {
+    public void setProgressListener(Consumer<SyncWorker.SyncProgress> progressListener) {
         this.progressListener = progressListener;
     }
 
@@ -71,8 +81,8 @@ public class SyncScheduler {
     }
 
     private void runSyncCycle() {
-        if (isSyncing) {
-            System.out.println(">>> Sync already in progress...");
+        if (isCycleRunning) {
+            log("Sync cycle already in progress, skipping.");
             return;
         }
 
@@ -81,42 +91,51 @@ public class SyncScheduler {
         }
 
         if (!apiClient.isOnline()) {
-            System.out.println(">>> System Offline. Skipping cycle.");
+            log("System Offline. Skipping sync cycle.");
             return;
         }
         
-        isSyncing = true;
-        System.out.println(">>> --- Starting Sync Cycle ---");
+        isCycleRunning = true;
+        log("--- Starting Sync Cycle ---");
         try {
-            // 1. Process Change Log (Deltas: Deletes, Updates, Inserts)
-            System.out.println(">>> Part 1: Delta Changes...");
+            // 1. Delta Changes (Sequential or specialized task)
             syncDeltaChanges();
 
-            // 2. Perform Full Reconciliation (Cloud=0 sweep)
-            System.out.println(">>> Part 2: Reconciliation...");
-            syncAllTables();
-            
-            System.out.println(">>> --- Sync Cycle Completed ---");
-        } catch (Throwable t) {
-            System.err.println(">>> CRITICAL ERROR in sync cycle: " + t.getClass().getName() + " - " + t.getMessage());
-            t.printStackTrace();
+            // 2. Full Reconciliation (Concurrent via ThreadPool)
+            List<String> tables = dbService.getTableNames();
+            for (String tableName : tables) {
+                if (activeSyncs.contains(tableName)) {
+                    log("Sync already active for " + tableName + ", skipping in this cycle.");
+                    continue;
+                }
+
+                // Submit to thread pool
+                activeSyncs.add(tableName);
+                syncThreadPool.submit(() -> {
+                    try {
+                        new SyncWorker(tableName, dbService, apiClient, queueManager, stateStore, 
+                                       progressListener, batchSize).run();
+                    } finally {
+                        activeSyncs.remove(tableName);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            log("CRITICAL ERROR in sync cycle: " + e.getMessage());
+            e.printStackTrace();
         } finally {
-            isSyncing = false;
+            isCycleRunning = false;
         }
     }
 
     private void syncDeltaChanges() {
-        System.out.println(">>> syncDeltaChanges() called...");
-        int batchSize = 500;
         try {
-            System.out.println(">>> Calling dbService.getPendingChanges()...");
             List<Map<String, Object>> changes = dbService.getPendingChanges(batchSize);
-            System.out.println(">>> Pending changes count: " + (changes == null ? "null" : changes.size()));
-            if (changes.isEmpty()) {
-                return;
-            }
+            if (changes.isEmpty()) return;
 
-            // Group changes by table and operation to optimize batching
+            log("Processing " + changes.size() + " delta changes...");
+            
+            // Group by table for batching efficacy
             Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
             for (Map<String, Object> change : changes) {
                 String key = change.get("table_name") + ":" + change.get("operation");
@@ -129,144 +148,24 @@ public class SyncScheduler {
                 String operation = parts[1];
                 List<Map<String, Object>> logEntries = entry.getValue();
 
-                log(String.format("Processing %d %s operations for %s", logEntries.size(), operation, tableName));
-
                 if ("DELETE".equalsIgnoreCase(operation)) {
                     List<Object> ids = logEntries.stream().map(e -> e.get("record_id")).toList();
                     apiClient.deleteRecords(tableName, ids);
                 } else {
-                    // INSERT/UPDATE: We fetch the current state of the records
                     String pkColumn = dbService.getPrimaryKeyColumn(tableName);
                     List<Map<String, Object>> records = new ArrayList<>();
                     for (Map<String, Object> logEntry : logEntries) {
                         Map<String, Object> record = dbService.getRecordById(tableName, pkColumn, logEntry.get("record_id"));
                         if (record != null) records.add(record);
                     }
-                    if (!records.isEmpty()) {
-                        apiClient.syncTable(tableName, records);
-                    }
+                    if (!records.isEmpty()) apiClient.syncTable(tableName, records);
                 }
 
-                // Mark these changes as synced locally
-                List<Integer> changeIds = logEntries.stream().map(e -> (Integer) e.get("id")).toList();
-                dbService.markChangesSynced(changeIds);
-                log("Completed batch for " + tableName);
+                dbService.markChangesSynced(logEntries.stream().map(e -> (Integer) e.get("id")).toList());
             }
+            log("Delta changes sync completed.");
         } catch (Exception e) {
             log("Error processing delta changes: " + e.getMessage());
-        }
-    }
-
-    private void syncAllTables() {
-        log(">>> Starting reconciliation sweep...");
-        try {
-            List<String> tables = dbService.getTableNames();
-            log(">>> Found " + tables.size() + " tables in local database.");
-            
-            // Prioritize customer table and others that are critical for UI feedback
-            tables.sort((a, b) -> {
-                if (a.equalsIgnoreCase("customer")) return -1;
-                if (b.equalsIgnoreCase("customer")) return 1;
-                return a.compareTo(b);
-            });
-
-            // Immediately notify UI about all tables so they appear in the list
-            for (String table : tables) {
-                notifyProgress(table, 0, 0, "Discovered");
-            }
-            log(">>> Registered all tables for sync monitoring.");
-
-            for (String table : tables) {
-                if (table.equalsIgnoreCase("customer")) {
-                    log(">>> [PRIORITY] Processing Customer table now...");
-                }
-                syncTable(table);
-            }
-            log(">>> Finished reconciliation sweep.");
-        } catch (SQLException e) {
-            log("!!! ERROR: Failed to discover tables: " + e.getMessage());
-        }
-    }
-
-    private void syncTable(String tableName) {
-        try {
-            if (!dbService.hasCloudColumn(tableName)) {
-                log("[" + tableName + "] Info: No cloud flag column. Skipping reconciliation.");
-                return;
-            }
-
-            String idColumn = dbService.getPrimaryKeyColumn(tableName);
-            if (idColumn == null) {
-                log("[" + tableName + "] Warn: No Primary Key found. Skipping reconciliation.");
-                return;
-            }
-
-            // --- Audit Phase ---
-            notifyProgress(tableName, 0, 0, "Auditing");
-            int localTotal = dbService.getTotalCount(tableName);
-            int localUnsynced = dbService.getUnsyncedCount(tableName);
-            
-            com.sync.dto.SyncStatusResponse cloudStatus = null;
-            try {
-                cloudStatus = apiClient.getSyncStatus(tableName);
-            } catch (Exception e) {
-                log("[" + tableName + "] Status Check Failed: " + e.getMessage());
-            }
-
-            if (cloudStatus != null) {
-                int cloudTotal = cloudStatus.getTotalRecords();
-                if (localTotal == cloudTotal && localUnsynced == 0) {
-                    log("[" + tableName + "] Skipping: Parity achieved (" + localTotal + " records).");
-                    notifyProgress(tableName, localTotal, localTotal, "Success");
-                    stateStore.updateTableState(tableName, cloudStatus.getLastSyncTimestamp().toString(), cloudTotal);
-                    return;
-                }
-                log("[" + tableName + "] Audit: Local=" + localTotal + ", Cloud=" + cloudTotal + ", Unsynced=" + localUnsynced);
-            }
-
-            // --- Sync Phase (Reconciliation) ---
-            int batchSize = 500;
-            int totalProcessed = 0;
-            
-            while (true) {
-                List<Map<String, Object>> batch = dbService.getUnsyncedDataBatch(tableName, batchSize);
-                if (batch.isEmpty()) {
-                    if (totalProcessed == 0) {
-                        notifyProgress(tableName, localTotal, localTotal, "Idle");
-                    }
-                    break;
-                }
-
-                log("[" + tableName + "] Reconciling " + batch.size() + " unsynced records...");
-                notifyProgress(tableName, totalProcessed, localTotal, "Pushing...");
-
-                try {
-                    apiClient.syncTable(tableName, batch);
-                    
-                    // Update local cloud flag
-                    List<Object> ids = batch.stream().map(r -> r.get(idColumn)).toList();
-                    dbService.updateCloudStatus(tableName, idColumn, ids);
-                    
-                    totalProcessed += batch.size();
-                    log("[" + tableName + "] Successfully pushed " + batch.size() + " records. (Total: " + totalProcessed + ")");
-                    notifyProgress(tableName, totalProcessed, localTotal, "Success");
-                    
-                    if (batch.size() < batchSize) break;
-                } catch (Exception e) {
-                    log("[" + tableName + "] Sync Error: " + e.getMessage());
-                    notifyProgress(tableName, totalProcessed, localTotal, "Error");
-                    break;
-                }
-            }
-            
-            // Update local state after successful reconciliation
-            if (cloudStatus != null) {
-                stateStore.updateTableState(tableName, null, dbService.getTotalCount(tableName));
-            }
-            
-        } catch (Exception e) {
-            log("[" + tableName + "] Critical System Error: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -277,23 +176,17 @@ public class SyncScheduler {
         }
     }
 
-    private void notifyProgress(String tableName, int processed, int total, String status) {
-        if (progressListener != null) {
-            progressListener.accept(new SyncProgress(tableName, processed, total, status));
+    public void shutdown() {
+        scheduler.shutdown();
+        syncThreadPool.shutdown();
+        try {
+            if (!scheduler.awaitTermination(30, TimeUnit.SECONDS)) scheduler.shutdownNow();
+            if (!syncThreadPool.awaitTermination(30, TimeUnit.SECONDS)) syncThreadPool.shutdownNow();
+        } catch (InterruptedException e) {
+            scheduler.shutdownNow();
+            syncThreadPool.shutdownNow();
         }
     }
 
     public record SyncProgress(String tableName, int processed, int total, String status) {}
-
-    public void shutdown() {
-        scheduler.shutdown();
-        try {
-            if (!scheduler.awaitTermination(60, TimeUnit.SECONDS)) {
-                scheduler.shutdownNow();
-            }
-        } catch (InterruptedException e) {
-            scheduler.shutdownNow();
-        }
-    }
-
 }

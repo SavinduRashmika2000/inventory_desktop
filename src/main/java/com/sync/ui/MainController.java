@@ -2,6 +2,7 @@ package com.sync.ui;
 
 import com.sync.client.SyncApiClient;
 import com.sync.scheduler.SyncScheduler;
+import com.sync.scheduler.SyncWorker;
 import com.sync.service.DatabaseService;
 import com.sync.service.OfflineQueueManager;
 import com.sync.service.SyncStateStore;
@@ -66,12 +67,14 @@ public class MainController {
             );
             
             SyncApiClient apiClient = new SyncApiClient(props.getProperty("api.base.url"));
-            OfflineQueueManager queueManager = new OfflineQueueManager();
+            OfflineQueueManager queueManager = new OfflineQueueManager(props.getProperty("queue.root", "sync-queue"));
             SyncStateStore stateStore = new SyncStateStore();
             
             long interval = Long.parseLong(props.getProperty("sync.interval.minutes", "1"));
+            int batchSize = Integer.parseInt(props.getProperty("sync.batch.size", "500"));
+            int maxConcurrency = Integer.parseInt(props.getProperty("sync.max.concurrency", "3"));
             
-            scheduler = new SyncScheduler(dbService, apiClient, queueManager, stateStore, interval);
+            scheduler = new SyncScheduler(dbService, apiClient, queueManager, stateStore, interval, batchSize, maxConcurrency);
             scheduler.setLogListener(this::appendLog);
             scheduler.setProgressListener(this::updateProgress);
             
@@ -118,7 +121,7 @@ public class MainController {
         });
     }
 
-    private void updateProgress(SyncScheduler.SyncProgress progress) {
+    private void updateProgress(SyncWorker.SyncProgress progress) {
         Platform.runLater(() -> {
             TableSyncInfo info = findTableInfo(progress.tableName());
             if (info == null) {
@@ -139,9 +142,6 @@ public class MainController {
                 default -> progress.status();
             };
             info.setStatus(displayStatus);
-            
-            // Mirror online status in header
-            // (Assuming SyncScheduler provides an isOnline state in an improved version)
             tablesTable.refresh();
         });
     }

@@ -12,9 +12,18 @@ import java.util.Map;
 @Slf4j
 public class SyncStateStore {
 
+    public enum SyncState {
+        IDLE, SYNCING, FAILED, QUEUED
+    }
+
     public static class TableState {
+        public String tableName;
         public String lastSyncTime;
         public Integer lastCloudCount;
+        public Long lastDurationMs;
+        public String lastError;
+        public SyncState state = SyncState.IDLE;
+        public Integer totalRecordsSynced = 0;
     }
 
     private static final String STATE_FILE = "sync-state.json";
