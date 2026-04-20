@@ -108,10 +108,18 @@ public class MainController {
     private void handleStop() {
         if (scheduler != null) {
             scheduler.stop();
+            appendLog("Automated sync paused.");
             startBtn.setDisable(false);
             stopBtn.setDisable(true);
             statusLabel.setText("Standby / Paused");
+            updateHealthIndicator();
         }
+    }
+
+    public void shutdownAll() {
+        log.info("Performing system shutdown...");
+        if (scheduler != null) scheduler.shutdown();
+        if (recoveryService != null) recoveryService.shutdown();
     }
 
     @FXML

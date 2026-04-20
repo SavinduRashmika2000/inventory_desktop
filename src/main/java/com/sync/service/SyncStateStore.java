@@ -38,8 +38,16 @@ public class SyncStateStore {
         return tableStates.getOrDefault(tableName, new TableState());
     }
 
+    public synchronized void saveTableState(TableState state) {
+        if (state.tableName != null) {
+            tableStates.put(state.tableName, state);
+            save();
+        }
+    }
+
     public synchronized void updateTableState(String tableName, String timestamp, Integer cloudCount) {
         TableState state = tableStates.getOrDefault(tableName, new TableState());
+        state.tableName = tableName;
         if (timestamp != null) state.lastSyncTime = timestamp;
         if (cloudCount != null) state.lastCloudCount = cloudCount;
         tableStates.put(tableName, state);

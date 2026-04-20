@@ -141,12 +141,13 @@ public class SyncWorker implements Runnable {
     }
 
     private void updateState(SyncStateStore.SyncState state, String error, Long duration) {
-        stateStore.updateTableState(tableName, Instant.now().toString(), null);
         SyncStateStore.TableState tableState = stateStore.getTableState(tableName);
+        tableState.tableName = tableName;
+        tableState.lastSyncTime = Instant.now().toString();
         tableState.state = state;
         tableState.lastError = error;
         if (duration != null) tableState.lastDurationMs = duration;
-        // In a real app, you'd save the stateStore here
+        stateStore.saveTableState(tableState);
     }
 
     private void notifyProgress(int processed, int total, String status) {
