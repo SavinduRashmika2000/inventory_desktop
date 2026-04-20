@@ -141,7 +141,6 @@ public class DatabaseService {
 
     private List<Map<String, Object>> executeQueryToMap(String sql) throws SQLException {
         List<Map<String, Object>> records = new ArrayList<>();
-        System.out.println(">>> DB Executing: " + sql);
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -153,29 +152,49 @@ public class DatabaseService {
                 Map<String, Object> row = new LinkedHashMap<>();
                 for (int i = 1; i <= columnCount; i++) {
                     String columnName = metaData.getColumnName(i);
-                    Object value = null;
-                    try {
-                        value = rs.getObject(i);
-                        
-                        if (value instanceof java.sql.Timestamp ts) {
-                            value = ts.toInstant().toString();
-                        } else if (value instanceof java.sql.Date d) {
-                            value = d.toString();
-                        } else if (value instanceof java.sql.Time t) {
-                            value = t.toString();
-                        }
-                    } catch (Exception e) {
-                        System.err.println(">>> DB: Column mapping error (" + columnName + "): " + e.getMessage());
-                        // Fallback: try to read as string if object-mapping fails
-                        try { value = rs.getString(i); } catch (Exception ignored) {}
+                    Object value = rs.getObject(i);
+                    if (value instanceof java.sql.Timestamp ts) {
+                        value = ts.toInstant().toString();
                     }
                     row.put(columnName, value);
                 }
                 records.add(row);
             }
         }
-        System.out.println(">>> DB: Returns " + records.size() + " records.");
         return records;
+    }
+
+    public void validateTableSchema(String tableName, List<Map<String, Object>> records) throws SQLException {
+        if (records == null || records.isEmpty()) return;
+
+        Set<String> dbColumns = getTableColumns(tableName);
+        String pk = getPrimaryKeyColumn(tableName);
+
+        if (pk == null) {
+            throw new SQLException("Strict Validation Failed: No Primary Key found for table " + tableName);
+        }
+
+        for (Map<String, Object> record : records) {
+            if (!record.containsKey(pk)) {
+                throw new SQLException("Strict Validation Failed: Record missing primary key '" + pk + "' for table " + tableName);
+            }
+            for (String key : record.keySet()) {
+                if (!dbColumns.contains(key)) {
+                    throw new SQLException("Strict Validation Failed: Unknown column '" + key + "' in payload for table " + tableName);
+                }
+            }
+        }
+    }
+
+    private Set<String> getTableColumns(String tableName) throws SQLException {
+        Set<String> columns = new HashSet<>();
+        try (Connection conn = getConnection();
+             ResultSet rs = conn.getMetaData().getColumns(null, null, tableName, null)) {
+            while (rs.next()) {
+                columns.add(rs.getString("COLUMN_NAME"));
+            }
+        }
+        return columns;
     }
 
     /**

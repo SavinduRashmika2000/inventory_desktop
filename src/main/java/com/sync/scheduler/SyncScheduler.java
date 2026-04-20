@@ -21,6 +21,7 @@ public class SyncScheduler {
     private final SyncApiClient apiClient;
     private final OfflineQueueManager queueManager;
     private final SyncStateStore stateStore;
+    private final LocalLogManager logManager;
     
     private final ScheduledExecutorService scheduler;
     private final ExecutorService syncThreadPool;
@@ -35,10 +36,15 @@ public class SyncScheduler {
     private Consumer<SyncWorker.SyncProgress> progressListener;
     private boolean isCycleRunning = false;
 
+    public boolean isOnline() {
+        return apiClient != null && apiClient.isOnline();
+    }
+
     public SyncScheduler(DatabaseService dbService, 
                         SyncApiClient apiClient, 
                         OfflineQueueManager queueManager,
                         SyncStateStore stateStore,
+                        LocalLogManager logManager,
                         long intervalMinutes,
                         int batchSize,
                         int maxConcurrency) {
@@ -46,6 +52,7 @@ public class SyncScheduler {
         this.apiClient = apiClient;
         this.queueManager = queueManager;
         this.stateStore = stateStore;
+        this.logManager = logManager;
         this.intervalMinutes = intervalMinutes;
         this.batchSize = batchSize;
         this.maxConcurrency = maxConcurrency;
@@ -114,7 +121,7 @@ public class SyncScheduler {
                 syncThreadPool.submit(() -> {
                     try {
                         new SyncWorker(tableName, dbService, apiClient, queueManager, stateStore, 
-                                       progressListener, batchSize).run();
+                                       logManager, progressListener, batchSize).run();
                     } finally {
                         activeSyncs.remove(tableName);
                     }
@@ -138,7 +145,7 @@ public class SyncScheduler {
             // Group by table for batching efficacy
             Map<String, List<Map<String, Object>>> grouped = new LinkedHashMap<>();
             for (Map<String, Object> change : changes) {
-                String key = change.get("table_name") + ":" + change.get("operation");
+                String key = (String) change.get("table_name") + ":" + change.get("operation");
                 grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(change);
             }
 
@@ -171,6 +178,9 @@ public class SyncScheduler {
 
     private void log(String message) {
         log.info(message);
+        if (logManager != null) {
+            logManager.logGlobal(message);
+        }
         if (logListener != null) {
             logListener.accept(message);
         }

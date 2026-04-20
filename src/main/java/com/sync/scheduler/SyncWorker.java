@@ -4,6 +4,7 @@ import com.sync.client.SyncApiClient;
 import com.sync.dto.SyncStatusResponse;
 import com.sync.exception.SyncException;
 import com.sync.service.DatabaseService;
+import com.sync.service.LocalLogManager;
 import com.sync.service.OfflineQueueManager;
 import com.sync.service.SyncStateStore;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ public class SyncWorker implements Runnable {
     private final SyncApiClient apiClient;
     private final OfflineQueueManager queueManager;
     private final SyncStateStore stateStore;
+    private final LocalLogManager logManager;
     private final Consumer<SyncProgress> progressListener;
     private final int batchSize;
 
@@ -31,6 +33,7 @@ public class SyncWorker implements Runnable {
                       SyncApiClient apiClient,
                       OfflineQueueManager queueManager,
                       SyncStateStore stateStore,
+                      LocalLogManager logManager,
                       Consumer<SyncProgress> progressListener,
                       int batchSize) {
         this.tableName = tableName;
@@ -38,6 +41,7 @@ public class SyncWorker implements Runnable {
         this.apiClient = apiClient;
         this.queueManager = queueManager;
         this.stateStore = stateStore;
+        this.logManager = logManager;
         this.progressListener = progressListener;
         this.batchSize = batchSize;
     }
@@ -103,6 +107,13 @@ public class SyncWorker implements Runnable {
                 List<Map<String, Object>> batch = dbService.getUnsyncedDataBatch(tableName, batchSize);
                 if (batch.isEmpty()) break;
 
+                // --- DATA INTEGRITY ENFORCEMENT ---
+                try {
+                    dbService.validateTableSchema(tableName, batch);
+                } catch (SQLException e) {
+                    throw new SyncException(e.getMessage(), SyncException.ErrorType.VALIDATION_ERROR, tableName, e);
+                }
+
                 notifyProgress(totalProcessed, localTotal, "Pushing...");
 
                 try {
@@ -145,8 +156,10 @@ public class SyncWorker implements Runnable {
     }
 
     private void log(String message) {
-        // This will be replaced by a proper LogManager call later
-        System.out.println("[" + tableName + "] " + message);
+        if (logManager != null) {
+            logManager.log(tableName, message);
+        }
+        log.info("[{}] {}", tableName, message);
     }
 
     public record SyncProgress(String tableName, int processed, int total, String status) {}

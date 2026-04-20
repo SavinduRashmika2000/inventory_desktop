@@ -4,6 +4,7 @@ import com.sync.client.SyncApiClient;
 import com.sync.scheduler.SyncScheduler;
 import com.sync.scheduler.SyncWorker;
 import com.sync.service.DatabaseService;
+import com.sync.service.LocalLogManager;
 import com.sync.service.OfflineQueueManager;
 import com.sync.service.RecoveryService;
 import com.sync.service.SyncStateStore;
@@ -37,6 +38,7 @@ public class MainController {
 
     private SyncScheduler scheduler;
     private RecoveryService recoveryService;
+    private LocalLogManager logManager;
     private final ObservableList<TableSyncInfo> tableList = FXCollections.observableArrayList();
 
     @FXML
@@ -71,12 +73,13 @@ public class MainController {
             SyncApiClient apiClient = new SyncApiClient(props.getProperty("api.base.url"));
             OfflineQueueManager queueManager = new OfflineQueueManager(props.getProperty("queue.root", "sync-queue"));
             SyncStateStore stateStore = new SyncStateStore();
+            logManager = new LocalLogManager(props.getProperty("logs.dir", "logs"));
             
             long interval = Long.parseLong(props.getProperty("sync.interval.minutes", "1"));
             int batchSize = Integer.parseInt(props.getProperty("sync.batch.size", "500"));
             int maxConcurrency = Integer.parseInt(props.getProperty("sync.max.concurrency", "3"));
             
-            scheduler = new SyncScheduler(dbService, apiClient, queueManager, stateStore, interval, batchSize, maxConcurrency);
+            scheduler = new SyncScheduler(dbService, apiClient, queueManager, stateStore, logManager, interval, batchSize, maxConcurrency);
             scheduler.setLogListener(this::appendLog);
             scheduler.setProgressListener(this::updateProgress);
 
@@ -143,12 +146,30 @@ public class MainController {
                 case "Success" -> "✨ Sync Complete";
                 case "Idle" -> "✅ Up to Date";
                 case "Error" -> "❌ Sync Error";
-                case "Invalid Data" -> "⚠️ Validation Error";
+                case "Validation Error" -> "⚠️ Invalid Schema";
+                case "Pushing Failed" -> "💾 Saved to Queue";
                 default -> progress.status();
             };
             info.setStatus(displayStatus);
+            updateHealthIndicator();
             tablesTable.refresh();
         });
+    }
+
+    private void updateHealthIndicator() {
+        boolean anyError = tableList.stream().anyMatch(t -> t.getStatus().contains("❌") || t.getStatus().contains("⚠️"));
+        boolean isOnline = scheduler != null && scheduler.isOnline(); // Assuming we add isOnline check to scheduler
+
+        if (!isOnline) {
+            statusLabel.setText("● System Offline");
+            statusLabel.setStyle("-fx-text-fill: #ff4d4d; -fx-font-weight: bold;"); // Red
+        } else if (anyError) {
+            statusLabel.setText("● Sync Alerts Active");
+            statusLabel.setStyle("-fx-text-fill: #ffcc00; -fx-font-weight: bold;"); // Yellow
+        } else {
+            statusLabel.setText("● All Systems Healthy");
+            statusLabel.setStyle("-fx-text-fill: #00cc66; -fx-font-weight: bold;"); // Green
+        }
     }
 
     private TableSyncInfo findTableInfo(String name) {
