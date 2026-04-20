@@ -1,0 +1,347 @@
+[12:30:42] [GLOBAL] Started automated sync cycle every 1 minute(s).
+[12:30:42] [GLOBAL] --- Starting Sync Cycle ---
+[12:30:44] [account_transaction] Started sync for table: account_transaction
+[12:30:44] [account] Started sync for table: account
+[12:30:44] [account_tr_type] Started sync for table: account_tr_type
+[12:30:44] [account_transaction] Successfully completed sync for table: account_transaction
+[12:30:44] [accounts_period] Started sync for table: accounts_period
+[12:30:44] [account_tr_type] Successfully completed sync for table: account_tr_type
+[12:30:44] [backup] Started sync for table: backup
+[12:30:44] [backup] Successfully completed sync for table: backup
+[12:30:44] [bin_card] Started sync for table: bin_card
+[12:30:44] [accounts_period] Successfully completed sync for table: accounts_period
+[12:30:44] [bincard] Started sync for table: bincard
+[12:30:44] [bin_card] Successfully completed sync for table: bin_card
+[12:30:44] [bulk_product_details] Started sync for table: bulk_product_details
+[12:30:44] [bincard] Successfully completed sync for table: bincard
+[12:30:44] [bulk_product_details] Successfully completed sync for table: bulk_product_details
+[12:30:44] [bulk_products] Started sync for table: bulk_products
+[12:30:44] [change_log] Started sync for table: change_log
+[12:30:44] [account] Successfully completed sync for table: account
+[12:30:44] [change_log] Successfully completed sync for table: change_log
+[12:30:44] [checklist] Started sync for table: checklist
+[12:30:44] [cheque] Started sync for table: cheque
+[12:30:44] [bulk_products] Successfully completed sync for table: bulk_products
+[12:30:44] [cloud_stock_price] Started sync for table: cloud_stock_price
+[12:30:45] [checklist] Successfully completed sync for table: checklist
+[12:30:45] [cloud_stock_price] Successfully completed sync for table: cloud_stock_price
+[12:30:45] [cheque] Successfully completed sync for table: cheque
+[12:30:45] [courior] Started sync for table: courior
+[12:30:45] [cus_credit] Started sync for table: cus_credit
+[12:30:45] [commition] Started sync for table: commition
+[12:30:45] [courior] Successfully completed sync for table: courior
+[12:30:45] [customer] Started sync for table: customer
+[12:30:45] [cus_credit] Successfully completed sync for table: cus_credit
+[12:30:45] [customer_payments] Started sync for table: customer_payments
+[12:30:45] [customer_payments] Successfully completed sync for table: customer_payments
+[12:30:45] [db] Started sync for table: db
+[12:30:45] [commition] Successfully completed sync for table: commition
+[12:30:45] [gift_vouchers] Started sync for table: gift_vouchers
+[12:30:45] [gift_vouchers] Successfully completed sync for table: gift_vouchers
+[12:30:45] [grn] Started sync for table: grn
+[12:30:45] [grn] Successfully completed sync for table: grn
+[12:30:45] [grn_has_item] Started sync for table: grn_has_item
+[12:30:45] [grn_has_item] Successfully completed sync for table: grn_has_item
+[12:30:45] [grn_main_item] Started sync for table: grn_main_item
+[12:30:45] [grn_main_item] Successfully completed sync for table: grn_main_item
+[12:30:45] [gsmdata] Started sync for table: gsmdata
+[12:30:45] [customer] Successfully completed sync for table: customer
+[12:30:45] [images] Started sync for table: images
+[12:30:45] [gsmdata] Successfully completed sync for table: gsmdata
+[12:30:45] [info] Started sync for table: info
+[12:30:45] [info] Successfully completed sync for table: info
+[12:30:45] [invoice] Started sync for table: invoice
+[12:30:45] [db] Successfully completed sync for table: db
+[12:30:45] [invoice_has_item] Started sync for table: invoice_has_item
+[12:30:45] [images] Successfully completed sync for table: images
+[12:30:45] [invoice_has_main_item] Started sync for table: invoice_has_main_item
+[12:30:45] [invoice] Successfully completed sync for table: invoice
+[12:30:45] [invoice_payments] Started sync for table: invoice_payments
+[12:30:46] [invoice_has_item] Successfully completed sync for table: invoice_has_item
+[12:30:46] [item] Started sync for table: item
+[12:30:46] [invoice_has_main_item] Successfully completed sync for table: invoice_has_main_item
+[12:30:46] [job] Started sync for table: job
+[12:30:46] [item] Successfully completed sync for table: item
+[12:30:46] [job] Successfully completed sync for table: job
+[12:30:46] [job-has_item] Started sync for table: job-has_item
+[12:30:46] [job_chat] Started sync for table: job_chat
+[12:30:46] [job-has_item] Successfully completed sync for table: job-has_item
+[12:30:46] [job_has_checklist] Started sync for table: job_has_checklist
+[12:30:46] [job_chat] Successfully completed sync for table: job_chat
+[12:30:46] [job_has_item] Started sync for table: job_has_item
+[12:30:46] [invoice_payments] Successfully completed sync for table: invoice_payments
+[12:30:46] [job_has_main_item] Started sync for table: job_has_main_item
+[12:30:46] [job_has_checklist] Successfully completed sync for table: job_has_checklist
+[12:30:46] [job_has_warranty_item] Started sync for table: job_has_warranty_item
+[12:30:46] [job_has_item] Successfully completed sync for table: job_has_item
+[12:30:46] [log] Started sync for table: log
+[12:30:46] [job_has_warranty_item] Successfully completed sync for table: job_has_warranty_item
+[12:30:46] [login] Started sync for table: login
+[12:30:46] [job_has_main_item] Successfully completed sync for table: job_has_main_item
+[12:30:46] [main_category] Started sync for table: main_category
+[12:30:46] [login] Successfully completed sync for table: login
+[12:30:46] [main_item] Started sync for table: main_item
+[12:30:46] [main_item] Successfully completed sync for table: main_item
+[12:30:46] [main_item_bulk] Started sync for table: main_item_bulk
+[12:30:46] [main_item_bulk] Successfully completed sync for table: main_item_bulk
+[12:30:46] [main_item_multiple] Started sync for table: main_item_multiple
+[12:30:46] [main_item_multiple] Successfully completed sync for table: main_item_multiple
+[12:30:46] [og_invoices] Started sync for table: og_invoices
+[12:30:46] [main_category] Successfully completed sync for table: main_category
+[12:30:46] [og_items] Started sync for table: og_items
+[12:30:46] [og_invoices] Successfully completed sync for table: og_invoices
+[12:30:46] [paw_carat] Started sync for table: paw_carat
+[12:30:46] [paw_carat] Successfully completed sync for table: paw_carat
+[12:30:46] [paw_customers] Started sync for table: paw_customers
+[12:30:47] [paw_customers] Successfully completed sync for table: paw_customers
+[12:30:47] [log] Successfully completed sync for table: log
+[12:30:47] [paw_pawning_data] Started sync for table: paw_pawning_data
+[12:30:47] [paw_pawning_details] Started sync for table: paw_pawning_details
+[12:30:47] [paw_pawning_data] Successfully completed sync for table: paw_pawning_data
+[12:30:47] [paw_transactions] Started sync for table: paw_transactions
+[12:30:47] [og_items] Successfully completed sync for table: og_items
+[12:30:47] [payment_slips] Started sync for table: payment_slips
+[12:30:47] [paw_pawning_details] Successfully completed sync for table: paw_pawning_details
+[12:30:47] [po] Started sync for table: po
+[12:30:47] [paw_transactions] Successfully completed sync for table: paw_transactions
+[12:30:47] [po_items] Started sync for table: po_items
+[12:30:47] [po_items] Successfully completed sync for table: po_items
+[12:30:47] [print_barcode] Started sync for table: print_barcode
+[12:30:47] [print_barcode] Successfully completed sync for table: print_barcode
+[12:30:47] [prn] Started sync for table: prn
+[12:30:47] [payment_slips] Successfully completed sync for table: payment_slips
+[12:30:47] [qty_discount] Started sync for table: qty_discount
+[12:30:47] [prn] Successfully completed sync for table: prn
+[12:30:47] [qty_discount] Successfully completed sync for table: qty_discount
+[12:30:47] [quotation] Started sync for table: quotation
+[12:30:47] [quotation_has_main_item] Started sync for table: quotation_has_main_item
+[12:30:47] [quotation_has_main_item] Successfully completed sync for table: quotation_has_main_item
+[12:30:47] [po] Successfully completed sync for table: po
+[12:30:47] [ramfiyo] Started sync for table: ramfiyo
+[12:30:47] [ret_grn_items] Started sync for table: ret_grn_items
+[12:30:47] [ret_grn_items] Successfully completed sync for table: ret_grn_items
+[12:30:47] [ret_inv_items] Started sync for table: ret_inv_items
+[12:30:47] [ret_inv_items] Successfully completed sync for table: ret_inv_items
+[12:30:47] [savecode] Started sync for table: savecode
+[12:30:47] [savecode] Successfully completed sync for table: savecode
+[12:30:47] [services] Started sync for table: services
+[12:30:47] [services] Successfully completed sync for table: services
+[12:30:47] [sheet1] Started sync for table: sheet1
+[12:30:47] [quotation] Successfully completed sync for table: quotation
+[12:30:47] [sms] Started sync for table: sms
+[12:30:47] [sheet1] Successfully completed sync for table: sheet1
+[12:30:47] [ramfiyo] Successfully completed sync for table: ramfiyo
+[12:30:47] [sms_contacts] Started sync for table: sms_contacts
+[12:30:47] [smssettings] Started sync for table: smssettings
+[12:30:47] [sms] Successfully completed sync for table: sms
+[12:30:47] [sprn] Started sync for table: sprn
+[12:30:47] [sms_contacts] Successfully completed sync for table: sms_contacts
+[12:30:47] [stock_take] Started sync for table: stock_take
+[12:30:48] [smssettings] Successfully completed sync for table: smssettings
+[12:30:48] [stores_record] Started sync for table: stores_record
+[12:30:48] [sprn] Successfully completed sync for table: sprn
+[12:30:48] [supplier] Started sync for table: supplier
+[12:30:48] [stock_take] Successfully completed sync for table: stock_take
+[12:30:48] [supplier_warranty] Started sync for table: supplier_warranty
+[12:30:48] [stores_record] Successfully completed sync for table: stores_record
+[12:30:48] [systemdata] Started sync for table: systemdata
+[12:30:48] [systemdata] Successfully completed sync for table: systemdata
+[12:30:48] [sytemdata] Started sync for table: sytemdata
+[12:30:48] [sytemdata] Successfully completed sync for table: sytemdata
+[12:30:48] [tech_inv_item] Started sync for table: tech_inv_item
+[12:30:48] [tech_inv_item] Successfully completed sync for table: tech_inv_item
+[12:30:48] [tech_inv_main_item] Started sync for table: tech_inv_main_item
+[12:30:48] [supplier_warranty] Successfully completed sync for table: supplier_warranty
+[12:30:48] [technical_invoice] Started sync for table: technical_invoice
+[12:30:48] [supplier] Successfully completed sync for table: supplier
+[12:30:48] [till] Started sync for table: till
+[12:30:48] [till] Successfully completed sync for table: till
+[12:30:48] [transactions] Started sync for table: transactions
+[12:30:48] [transactions] Successfully completed sync for table: transactions
+[12:30:48] [tt_master] Started sync for table: tt_master
+[12:30:49] [tt_master] Successfully completed sync for table: tt_master
+[12:30:49] [user] Started sync for table: user
+[12:30:49] [user] Successfully completed sync for table: user
+[12:30:49] [tech_inv_main_item] Successfully completed sync for table: tech_inv_main_item
+[12:30:49] [user_has_job] Started sync for table: user_has_job
+[12:30:49] [user_message] Started sync for table: user_message
+[12:30:49] [user_message] Successfully completed sync for table: user_message
+[12:30:49] [vehicle] Started sync for table: vehicle
+[12:30:49] [vehicle] Successfully completed sync for table: vehicle
+[12:30:49] [z_itemlog] Started sync for table: z_itemlog
+[12:30:49] [z_itemlog] Successfully completed sync for table: z_itemlog
+[12:30:49] [technical_invoice] Successfully completed sync for table: technical_invoice
+[12:30:49] [user_has_job] Successfully completed sync for table: user_has_job
+[12:30:58] [GLOBAL] --- Starting Sync Cycle ---
+[12:30:58] [account_tr_type] Started sync for table: account_tr_type
+[12:30:58] [account_transaction] Started sync for table: account_transaction
+[12:30:58] [account] Started sync for table: account
+[12:30:58] [account_transaction] Successfully completed sync for table: account_transaction
+[12:30:58] [accounts_period] Started sync for table: accounts_period
+[12:30:58] [account] Successfully completed sync for table: account
+[12:30:58] [backup] Started sync for table: backup
+[12:30:58] [accounts_period] Successfully completed sync for table: accounts_period
+[12:30:58] [bin_card] Started sync for table: bin_card
+[12:30:58] [backup] Successfully completed sync for table: backup
+[12:30:58] [bincard] Started sync for table: bincard
+[12:30:58] [bin_card] Successfully completed sync for table: bin_card
+[12:30:58] [bulk_product_details] Started sync for table: bulk_product_details
+[12:30:58] [bincard] Successfully completed sync for table: bincard
+[12:30:58] [bulk_products] Started sync for table: bulk_products
+[12:30:58] [account_tr_type] Successfully completed sync for table: account_tr_type
+[12:30:58] [change_log] Started sync for table: change_log
+[12:30:58] [bulk_product_details] Successfully completed sync for table: bulk_product_details
+[12:30:58] [checklist] Started sync for table: checklist
+[12:30:58] [bulk_products] Successfully completed sync for table: bulk_products
+[12:30:58] [cheque] Started sync for table: cheque
+[12:30:58] [change_log] Successfully completed sync for table: change_log
+[12:30:58] [checklist] Successfully completed sync for table: checklist
+[12:30:58] [cloud_stock_price] Started sync for table: cloud_stock_price
+[12:30:58] [commition] Started sync for table: commition
+[12:30:58] [cheque] Successfully completed sync for table: cheque
+[12:30:58] [courior] Started sync for table: courior
+[12:30:58] [commition] Successfully completed sync for table: commition
+[12:30:58] [cus_credit] Started sync for table: cus_credit
+[12:30:58] [cloud_stock_price] Successfully completed sync for table: cloud_stock_price
+[12:30:58] [customer] Started sync for table: customer
+[12:30:58] [courior] Successfully completed sync for table: courior
+[12:30:58] [customer_payments] Started sync for table: customer_payments
+[12:30:58] [cus_credit] Successfully completed sync for table: cus_credit
+[12:30:58] [db] Started sync for table: db
+[12:30:58] [customer_payments] Successfully completed sync for table: customer_payments
+[12:30:58] [gift_vouchers] Started sync for table: gift_vouchers
+[12:30:58] [db] Successfully completed sync for table: db
+[12:30:58] [grn] Started sync for table: grn
+[12:30:58] [gift_vouchers] Successfully completed sync for table: gift_vouchers
+[12:30:58] [grn_has_item] Started sync for table: grn_has_item
+[12:30:58] [grn] Successfully completed sync for table: grn
+[12:30:58] [grn_main_item] Started sync for table: grn_main_item
+[12:30:58] [customer] Successfully completed sync for table: customer
+[12:30:58] [gsmdata] Started sync for table: gsmdata
+[12:30:58] [grn_has_item] Successfully completed sync for table: grn_has_item
+[12:30:58] [images] Started sync for table: images
+[12:30:58] [grn_main_item] Successfully completed sync for table: grn_main_item
+[12:30:58] [info] Started sync for table: info
+[12:30:58] [gsmdata] Successfully completed sync for table: gsmdata
+[12:30:58] [invoice] Started sync for table: invoice
+[12:30:58] [info] Successfully completed sync for table: info
+[12:30:58] [invoice_has_item] Started sync for table: invoice_has_item
+[12:30:58] [invoice] Successfully completed sync for table: invoice
+[12:30:58] [invoice_has_main_item] Started sync for table: invoice_has_main_item
+[12:30:58] [invoice_has_item] Successfully completed sync for table: invoice_has_item
+[12:30:58] [invoice_payments] Started sync for table: invoice_payments
+[12:30:58] [invoice_has_main_item] Successfully completed sync for table: invoice_has_main_item
+[12:30:58] [item] Started sync for table: item
+[12:30:58] [item] Successfully completed sync for table: item
+[12:30:58] [job] Started sync for table: job
+[12:30:58] [job] Successfully completed sync for table: job
+[12:30:58] [job-has_item] Started sync for table: job-has_item
+[12:30:58] [job-has_item] Successfully completed sync for table: job-has_item
+[12:30:58] [job_chat] Started sync for table: job_chat
+[12:30:58] [images] Successfully completed sync for table: images
+[12:30:58] [job_chat] Successfully completed sync for table: job_chat
+[12:30:58] [job_has_checklist] Started sync for table: job_has_checklist
+[12:30:58] [job_has_item] Started sync for table: job_has_item
+[12:30:58] [invoice_payments] Successfully completed sync for table: invoice_payments
+[12:30:58] [job_has_checklist] Successfully completed sync for table: job_has_checklist
+[12:30:58] [job_has_main_item] Started sync for table: job_has_main_item
+[12:30:58] [job_has_warranty_item] Started sync for table: job_has_warranty_item
+[12:30:59] [job_has_item] Successfully completed sync for table: job_has_item
+[12:30:59] [log] Started sync for table: log
+[12:30:59] [job_has_main_item] Successfully completed sync for table: job_has_main_item
+[12:30:59] [login] Started sync for table: login
+[12:30:59] [login] Successfully completed sync for table: login
+[12:30:59] [main_category] Started sync for table: main_category
+[12:30:59] [log] Successfully completed sync for table: log
+[12:30:59] [main_item] Started sync for table: main_item
+[12:30:59] [main_category] Successfully completed sync for table: main_category
+[12:30:59] [main_item_bulk] Started sync for table: main_item_bulk
+[12:30:59] [main_item_bulk] Successfully completed sync for table: main_item_bulk
+[12:30:59] [main_item] Successfully completed sync for table: main_item
+[12:30:59] [main_item_multiple] Started sync for table: main_item_multiple
+[12:30:59] [og_invoices] Started sync for table: og_invoices
+[12:30:59] [main_item_multiple] Successfully completed sync for table: main_item_multiple
+[12:30:59] [og_items] Started sync for table: og_items
+[12:30:59] [og_invoices] Successfully completed sync for table: og_invoices
+[12:30:59] [paw_carat] Started sync for table: paw_carat
+[12:30:59] [og_items] Successfully completed sync for table: og_items
+[12:30:59] [paw_customers] Started sync for table: paw_customers
+[12:30:59] [paw_carat] Successfully completed sync for table: paw_carat
+[12:30:59] [paw_pawning_data] Started sync for table: paw_pawning_data
+[12:30:59] [paw_customers] Successfully completed sync for table: paw_customers
+[12:30:59] [paw_pawning_details] Started sync for table: paw_pawning_details
+[12:30:59] [paw_pawning_data] Successfully completed sync for table: paw_pawning_data
+[12:30:59] [paw_transactions] Started sync for table: paw_transactions
+[12:30:59] [paw_pawning_details] Successfully completed sync for table: paw_pawning_details
+[12:30:59] [payment_slips] Started sync for table: payment_slips
+[12:30:59] [paw_transactions] Successfully completed sync for table: paw_transactions
+[12:30:59] [job_has_warranty_item] Successfully completed sync for table: job_has_warranty_item
+[12:30:59] [po] Started sync for table: po
+[12:30:59] [po_items] Started sync for table: po_items
+[12:30:59] [payment_slips] Successfully completed sync for table: payment_slips
+[12:30:59] [print_barcode] Started sync for table: print_barcode
+[12:30:59] [po] Successfully completed sync for table: po
+[12:30:59] [prn] Started sync for table: prn
+[12:30:59] [po_items] Successfully completed sync for table: po_items
+[12:30:59] [qty_discount] Started sync for table: qty_discount
+[12:30:59] [print_barcode] Successfully completed sync for table: print_barcode
+[12:30:59] [quotation] Started sync for table: quotation
+[12:30:59] [prn] Successfully completed sync for table: prn
+[12:30:59] [quotation_has_main_item] Started sync for table: quotation_has_main_item
+[12:30:59] [quotation] Successfully completed sync for table: quotation
+[12:30:59] [ramfiyo] Started sync for table: ramfiyo
+[12:30:59] [qty_discount] Successfully completed sync for table: qty_discount
+[12:30:59] [ret_grn_items] Started sync for table: ret_grn_items
+[12:30:59] [ramfiyo] Successfully completed sync for table: ramfiyo
+[12:30:59] [ret_inv_items] Started sync for table: ret_inv_items
+[12:30:59] [quotation_has_main_item] Successfully completed sync for table: quotation_has_main_item
+[12:30:59] [savecode] Started sync for table: savecode
+[12:30:59] [ret_grn_items] Successfully completed sync for table: ret_grn_items
+[12:30:59] [services] Started sync for table: services
+[12:30:59] [savecode] Successfully completed sync for table: savecode
+[12:30:59] [sheet1] Started sync for table: sheet1
+[12:30:59] [services] Successfully completed sync for table: services
+[12:30:59] [sms] Started sync for table: sms
+[12:30:59] [sheet1] Successfully completed sync for table: sheet1
+[12:30:59] [sms_contacts] Started sync for table: sms_contacts
+[12:30:59] [sms_contacts] Successfully completed sync for table: sms_contacts
+[12:30:59] [sms] Successfully completed sync for table: sms
+[12:30:59] [smssettings] Started sync for table: smssettings
+[12:30:59] [sprn] Started sync for table: sprn
+[12:30:59] [smssettings] Successfully completed sync for table: smssettings
+[12:30:59] [stock_take] Started sync for table: stock_take
+[12:30:59] [stock_take] Successfully completed sync for table: stock_take
+[12:30:59] [stores_record] Started sync for table: stores_record
+[12:30:59] [stores_record] Successfully completed sync for table: stores_record
+[12:30:59] [supplier] Started sync for table: supplier
+[12:30:59] [supplier] Successfully completed sync for table: supplier
+[12:30:59] [supplier_warranty] Started sync for table: supplier_warranty
+[12:30:59] [ret_inv_items] Successfully completed sync for table: ret_inv_items
+[12:30:59] [systemdata] Started sync for table: systemdata
+[12:30:59] [supplier_warranty] Successfully completed sync for table: supplier_warranty
+[12:30:59] [sytemdata] Started sync for table: sytemdata
+[12:30:59] [systemdata] Successfully completed sync for table: systemdata
+[12:30:59] [tech_inv_item] Started sync for table: tech_inv_item
+[12:30:59] [sytemdata] Successfully completed sync for table: sytemdata
+[12:30:59] [tech_inv_main_item] Started sync for table: tech_inv_main_item
+[12:30:59] [tech_inv_item] Successfully completed sync for table: tech_inv_item
+[12:30:59] [technical_invoice] Started sync for table: technical_invoice
+[12:30:59] [technical_invoice] Successfully completed sync for table: technical_invoice
+[12:30:59] [till] Started sync for table: till
+[12:30:59] [tech_inv_main_item] Successfully completed sync for table: tech_inv_main_item
+[12:30:59] [transactions] Started sync for table: transactions
+[12:30:59] [till] Successfully completed sync for table: till
+[12:30:59] [tt_master] Started sync for table: tt_master
+[12:30:59] [tt_master] Successfully completed sync for table: tt_master
+[12:30:59] [user] Started sync for table: user
+[12:30:59] [user] Successfully completed sync for table: user
+[12:30:59] [user_has_job] Started sync for table: user_has_job
+[12:30:59] [user_has_job] Successfully completed sync for table: user_has_job
+[12:30:59] [sprn] Successfully completed sync for table: sprn
+[12:30:59] [user_message] Started sync for table: user_message
+[12:30:59] [vehicle] Started sync for table: vehicle
+[12:30:59] [user_message] Successfully completed sync for table: user_message
+[12:30:59] [z_itemlog] Started sync for table: z_itemlog
+[12:30:59] [vehicle] Successfully completed sync for table: vehicle
+[12:30:59] [transactions] Successfully completed sync for table: transactions
+[12:30:59] [z_itemlog] Successfully completed sync for table: z_itemlog

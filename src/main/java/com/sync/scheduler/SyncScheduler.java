@@ -3,6 +3,7 @@ package com.sync.scheduler;
 import com.sync.client.SyncApiClient;
 import com.sync.dto.SyncResponse;
 import com.sync.service.DatabaseService;
+import com.sync.service.LocalLogManager;
 import com.sync.service.OfflineQueueManager;
 import com.sync.service.SyncStateStore;
 import lombok.extern.slf4j.Slf4j;
