@@ -5,6 +5,7 @@ import com.sync.scheduler.SyncScheduler;
 import com.sync.scheduler.SyncWorker;
 import com.sync.service.DatabaseService;
 import com.sync.service.OfflineQueueManager;
+import com.sync.service.RecoveryService;
 import com.sync.service.SyncStateStore;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -35,6 +36,7 @@ public class MainController {
     @FXML private Button stopBtn;
 
     private SyncScheduler scheduler;
+    private RecoveryService recoveryService;
     private final ObservableList<TableSyncInfo> tableList = FXCollections.observableArrayList();
 
     @FXML
@@ -77,6 +79,9 @@ public class MainController {
             scheduler = new SyncScheduler(dbService, apiClient, queueManager, stateStore, interval, batchSize, maxConcurrency);
             scheduler.setLogListener(this::appendLog);
             scheduler.setProgressListener(this::updateProgress);
+
+            recoveryService = new RecoveryService(queueManager, apiClient, stateStore);
+            recoveryService.runRecovery();
             
             appendLog("System initialized in Production Mode.");
             
